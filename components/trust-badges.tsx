@@ -26,12 +26,8 @@ const trustFeatures = [
     icon: Car,
     title: "Wide Selection",
     description: "Hundreds of quality pre-owned vehicles in stock"
-  },
-  {
-    icon: CheckCircle,
-    title: "Warranty Coverage",
-    description: "All vehicles come with comprehensive warranty protection"
   }
+
 ]
 
 export function TrustBadges() {
@@ -43,7 +39,7 @@ export function TrustBadges() {
             Why Choose AM Tycoons Inc.?
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            We're committed to providing the best car buying experience with transparency, quality, and customer satisfaction at the core of everything we do.
+            We&apos;re committed to providing exceptional service and ensuring every customer drives away satisfied.
           </p>
         </div>
 

@@ -24,19 +24,13 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
-import { 
-  addCar, 
-  updateCar,
-  getAllCars
-} from "@/lib/firebase"
 import { ImageUpload } from "@/components/image-upload"
+import { addCar, updateCar } from "@/lib/firebase"
 import type { Car } from "@/lib/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 
 interface CarFormProps {
-  car?: Car | null;
-  onSuccess: (car: Car) => void;
+  initialData?: Car | null;
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
@@ -60,22 +54,20 @@ const formSchema = z.object({
   description: z.string().optional(),
   features: z.string().optional(),
   documents: z.string().optional(),
-  approved: z.boolean().default(false),
-  isInventory: z.boolean().default(true),
+  approved: z.boolean().default(true), // Default to true for new cars
+  isInventory: z.boolean().default(true), // Default to true for new cars
   isFeatured: z.boolean().default(false),
 })
 
 type CarFormValues = z.infer<typeof formSchema>
 
-export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
+export function CarForm({ initialData, onSuccess, onCancel }: CarFormProps) {
   const [loading, setLoading] = useState(false)
-  const [imageUrls, setImageUrls] = useState<string[]>(car?.images || [])
-  const [similarCars, setSimilarCars] = useState<Car[]>([])
-  const [showSimilarCars, setShowSimilarCars] = useState(false)
+  const [imageUrls, setImageUrls] = useState<string[]>(initialData?.images || [])
 
   const form = useForm<CarFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: car || {
+    defaultValues: {
       title: "",
       make: "",
       model: "",
@@ -84,585 +76,603 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
       price: 0,
       location: "",
       phone: "",
-      approved: false,
-      isInventory: true,
+      approved: true, // Default to true
+      isInventory: true, // Default to true
       isFeatured: false,
     },
   })
 
   useEffect(() => {
-    if (car) {
+    if (initialData) {
       form.reset({
-        ...car,
-        year: car.year || new Date().getFullYear(),
-        mileage: car.mileage || 0,
-        price: car.price || 0,
+        ...initialData,
+        year: initialData.year || new Date().getFullYear(),
+        mileage: initialData.mileage || 0,
+        price: initialData.price || 0,
         // features and documents need to be converted from array to string for textarea
-        features: Array.isArray(car.features) ? car.features.join('\n') : car.features || '',
-        documents: Array.isArray(car.documents) ? car.documents.join('\n') : car.documents || '',
+        features: Array.isArray(initialData.features) 
+          ? initialData.features.join("\n") 
+          : initialData.features || "",
+        documents: Array.isArray(initialData.documents) 
+          ? initialData.documents.map(doc => `${doc.name},${doc.url}`).join("\n") 
+          : initialData.documents || "",
       })
-      setImageUrls(car.images || [])
+      setImageUrls(initialData.images || [])
     }
-  }, [car, form])
-
-  const findSimilarCars = async (carData: CarFormValues) => {
-    try {
-      const allCars = await getAllCars()
-      const similar = allCars
-        .filter(existingCar => existingCar.id !== car?.id) // Exclude current car if editing
-        .map(existingCar => ({
-          car: existingCar,
-          score: calculateScore(existingCar, carData)
-        }))
-        .filter(item => item.score > 0.3) // Only show cars with >30% similarity
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5) // Top 5 similar cars
-        .map(item => item.car)
-
-      setSimilarCars(similar)
-      setShowSimilarCars(true)
-    } catch (error) {
-      console.error("Error finding similar cars:", error)
-    }
-  }
-
-  const calculateScore = (car: Car, newCar: CarFormValues) => {
-    let score = 0
-    let totalFactors = 0
-
-    // Same make and model (highest weight)
-    if (car.make.toLowerCase() === newCar.make.toLowerCase()) {
-      score += 0.4
-      totalFactors += 1
-    }
-    if (car.model.toLowerCase() === newCar.model.toLowerCase()) {
-      score += 0.4
-      totalFactors += 1
-    }
-
-    // Price range (±$5,000)
-    const priceDiff = Math.abs(car.price - newCar.price)
-    if (priceDiff <= 5000) {
-      score += 0.3
-      totalFactors += 1
-    }
-
-    // Year range (±2 years)
-    const yearDiff = Math.abs(car.year - newCar.year)
-    if (yearDiff <= 2) {
-      score += 0.2
-      totalFactors += 1
-    }
-
-    // Mileage range (±20,000 miles)
-    const mileageDiff = Math.abs(car.mileage - newCar.mileage)
-    if (mileageDiff <= 20000) {
-      score += 0.1
-      totalFactors += 1
-    }
-
-    return totalFactors > 0 ? score / totalFactors : 0
-  }
+  }, [initialData, form])
 
   const onSubmit = async (values: CarFormValues) => {
+    console.log("Form submitted with values:", values)
+    setLoading(true)
     try {
-      setLoading(true)
-
       const carData = {
-        ...values,
-        images: imageUrls,
-        features: values.features ? values.features.split('\n').filter(f => f.trim()) : [],
-        documents: values.documents ? values.documents.split('\n').filter(d => d.trim()) : [],
-        views: car?.views || 0,
-        contactCount: car?.contactCount || 0,
-        createdAt: car?.createdAt || new Date(),
-        updatedAt: new Date(),
+        title: values.title,
+        make: values.make,
+        model: values.model,
+        year: values.year,
+        mileage: values.mileage,
+        price: values.price,
+        location: values.location,
+        vin: values.vin || "",
+        engine: values.engine || "",
+        transmission: values.transmission || "",
+        exteriorColor: values.exteriorColor || "",
+        interiorColor: values.interiorColor || "",
+        driveType: values.driveType || "",
+        fuelType: values.fuelType || "",
+        description: values.description || "",
+        images: imageUrls, // Use the image URLs from Cloudinary
+        contact: {
+          phone: values.phone || "",
+          whatsapp: values.whatsapp || "",
+        },
+        rating: 0,
+        reviews: [],
+        approved: values.approved,
+        listedAt: new Date(),
+        isFeatured: values.isFeatured,
+        isInventory: values.isInventory,
+        features: values.features ? values.features.split("\n").map(f => f.trim()).filter(f => f) : [],
+        documents: values.documents ? values.documents.split("\n").map(d => {
+          const parts = d.split(",");
+          return { name: parts[0]?.trim() || "", url: parts[1]?.trim() || "" };
+        }).filter(d => d.name) : [],
       }
 
-      let result: Car
+      console.log("Processing clean car data:", carData)
 
-      if (car) {
+      if (initialData?.id) {
         // Update existing car
-        result = await updateCar(car.id, carData)
+        console.log("Updating car with ID:", initialData.id)
+        await updateCar(initialData.id, carData)
         toast.success("Car updated successfully!")
       } else {
         // Add new car
-        result = await addCar(carData)
+        console.log("Adding new car")
+        await addCar(carData)
         toast.success("Car added successfully!")
-        
-        // Find similar cars after adding
-        await findSimilarCars(values)
       }
-
-      onSuccess(result)
+      onSuccess()
     } catch (error) {
       console.error("Error saving car:", error)
-      toast.error("Failed to save car")
+      toast.error("Failed to save car. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(price)
+  const handleImagesUploaded = (urls: string[]) => {
+    setImageUrls(urls)
+    console.log("Images updated:", urls)
+  }
+
+  const handleImageRemove = (imageUrl: string) => {
+    // For now, just remove from local state
+    // In the future, you might want to delete from Cloudinary as well
+    setImageUrls(prev => prev.filter(url => url !== imageUrl))
+    console.log("Image removed:", imageUrl)
   }
 
   return (
-    <div className="space-y-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Car Title *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 2021 Honda Civic Sport" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* Basic Information */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Basic Information</h3>
+          
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="title">Title</FormLabel>
+                <FormControl>
+                  <Input 
+                    id="title"
+                    placeholder="2023 Honda Civic Sport" 
+                    {...field} 
+                    className="text-gray-900 dark:text-gray-100"
+                    autoComplete="off"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
               name="make"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Make *</FormLabel>
+                  <FormLabel htmlFor="make">Make</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Honda" {...field} />
+                    <Input 
+                      id="make"
+                      placeholder="Honda" 
+                      {...field} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Model *</FormLabel>
+                  <FormLabel htmlFor="model">Model</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Civic" {...field} />
+                    <Input 
+                      id="model"
+                      placeholder="Civic" 
+                      {...field} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Year *</FormLabel>
+                  <FormLabel htmlFor="year">Year</FormLabel>
                   <FormControl>
                     <Input 
+                      id="year"
                       type="number" 
-                      placeholder="2021" 
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      placeholder="2023" 
+                      {...field} 
+                      onChange={e => field.onChange(parseInt(e.target.value) || 0)} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
               name="mileage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mileage *</FormLabel>
+                  <FormLabel htmlFor="mileage">Mileage</FormLabel>
                   <FormControl>
                     <Input 
+                      id="mileage"
                       type="number" 
-                      placeholder="50000" 
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      placeholder="15000" 
+                      {...field} 
+                      onChange={e => field.onChange(parseInt(e.target.value) || 0)} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Price *</FormLabel>
+                  <FormLabel htmlFor="price">Price ($)</FormLabel>
                   <FormControl>
                     <Input 
+                      id="price"
                       type="number" 
                       placeholder="25000" 
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      {...field} 
+                      onChange={e => field.onChange(parseInt(e.target.value) || 0)} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location *</FormLabel>
+                  <FormLabel htmlFor="location">Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Los Angeles, CA" {...field} />
+                    <Input 
+                      id="location"
+                      placeholder="Los Angeles, CA" 
+                      {...field} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </div>
+        </div>
 
+        {/* Contact Information */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Contact Information</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="vin"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>VIN</FormLabel>
+                  <FormLabel htmlFor="vin">VIN (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="VIN number" {...field} />
+                    <Input 
+                      id="vin"
+                      placeholder="1G1AP5G29J4000001" 
+                      {...field} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-
-          {/* Contact Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone *</FormLabel>
+                  <FormLabel htmlFor="phone">Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="+1 555-123-4567" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="whatsapp"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>WhatsApp</FormLabel>
-                  <FormControl>
-                    <Input placeholder="+1 555-123-4567" {...field} />
+                    <Input 
+                      id="phone"
+                      placeholder="+1 (555) 123-4567" 
+                      {...field} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="tel"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+          
+          <FormField
+            control={form.control}
+            name="whatsapp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="whatsapp">WhatsApp (Optional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    id="whatsapp"
+                    placeholder="+1 (555) 123-4567" 
+                    {...field} 
+                    className="text-gray-900 dark:text-gray-100"
+                    autoComplete="tel"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-          {/* Technical Specifications */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Technical Specifications */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Technical Specifications</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="engine"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Engine</FormLabel>
+                  <FormLabel htmlFor="engine">Engine (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., 2.0L 4-Cylinder" {...field} />
+                    <Input 
+                      id="engine"
+                      placeholder="2.0L I4 Turbo" 
+                      {...field} 
+                      className="text-gray-900 dark:text-gray-100"
+                      autoComplete="off"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="transmission"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Transmission</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Automatic" {...field} />
-                  </FormControl>
+                  <FormLabel>Transmission (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select transmission" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Automatic">Automatic</SelectItem>
+                      <SelectItem value="Manual">Manual</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="exteriorColor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Exterior Color</FormLabel>
+                  <FormLabel>Exterior Color (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Black" {...field} />
+                    <Input placeholder="Black" {...field} className="text-gray-900 dark:text-gray-100" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="interiorColor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Interior Color</FormLabel>
+                  <FormLabel>Interior Color (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Gray" {...field} />
+                    <Input placeholder="Black" {...field} className="text-gray-900 dark:text-gray-100" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="driveType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Drive Type</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., FWD" {...field} />
-                  </FormControl>
+                  <FormLabel>Drive Type (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select drive type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="FWD">FWD</SelectItem>
+                      <SelectItem value="RWD">RWD</SelectItem>
+                      <SelectItem value="AWD">AWD</SelectItem>
+                      <SelectItem value="4WD">4WD</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="fuelType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fuel Type</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Gasoline" {...field} />
-                  </FormControl>
+                  <FormLabel>Fuel Type (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select fuel type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Gasoline">Gasoline</SelectItem>
+                      <SelectItem value="Diesel">Diesel</SelectItem>
+                      <SelectItem value="Electric">Electric</SelectItem>
+                      <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+        </div>
 
-          {/* Description and Features */}
-          <div className="space-y-6">
+        {/* Description and Features */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Description & Features</h3>
+          
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Enter detailed car description..." 
+                    {...field} 
+                    rows={4}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="features"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Features (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Enter each feature on a new line. Example:&#10;Bluetooth Connectivity&#10;Backup Camera&#10;Heated Seats&#10;Sunroof" 
+                    {...field}
+                    value={field.value || ""}
+                    rows={4}
+                  />
+                </FormControl>
+                <FormDescription>Enter each feature on a new line.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="documents"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Documents (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Enter each document as `name,url` on a new line. Example:&#10;Carfax Report,https://example.com/carfax.pdf&#10;Service History,https://example.com/service.pdf"
+                    {...field}
+                    value={field.value || ""}
+                    rows={4}
+                  />
+                </FormControl>
+                <FormDescription>Enter each document as `name,url` on a new line.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Image Upload */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Car Images</h3>
+          <ImageUpload 
+            onImagesUploaded={handleImagesUploaded}
+            existingImages={imageUrls}
+            onImageRemove={handleImageRemove}
+            maxImages={10}
+          />
+        </div>
+
+        {/* Display Settings */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Display Settings</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
-              name="description"
+              name="approved"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Textarea 
-                      placeholder="Describe the car's condition, history, and any notable features..."
-                      className="min-h-[100px]"
-                      {...field}
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="features"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Features (one per line)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Bluetooth
-Backup Camera
-Heated Seats
-..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    List each feature on a separate line
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="documents"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Documents (one per line)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Clean Title
-Service Records
-..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    List each document on a separate line
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Image Upload */}
-          <div className="space-y-4">
-            <FormLabel>Images</FormLabel>
-            <ImageUpload
-              value={imageUrls}
-              onChange={setImageUrls}
-              onRemove={(url) => setImageUrls(imageUrls.filter((current) => current !== url))}
-            />
-          </div>
-
-          {/* Settings */}
-          <div className="space-y-4">
-            <FormLabel>Settings</FormLabel>
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="approved"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Approved for public viewing</FormLabel>
-                      <FormDescription>
-                        Only approved cars will be visible to customers
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="isFeatured"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Featured car</FormLabel>
-                      <FormDescription>
-                        Featured cars will be highlighted on the homepage
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="isInventory"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Available in inventory</FormLabel>
-                      <FormDescription>
-                        Mark as available for purchase
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? "Saving..." : car ? "Update Car" : "Add Car"}
-            </Button>
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </Form>
-
-      {/* Similar Cars Section */}
-      {showSimilarCars && similarCars.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-xl">🔍</span>
-              Similar Cars Found
-            </CardTitle>
-            <p className="text-sm text-gray-600">
-              These cars are similar to the one you just added. They may compete for the same customers.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {similarCars.map((car) => (
-                <div key={car.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-sm">{car.title}</h4>
-                    <Badge variant="secondary" className="text-xs">
-                      Similar
-                    </Badge>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Approved</FormLabel>
+                    <FormDescription>Mark car as approved for public display.</FormDescription>
                   </div>
-                  <p className="text-red-600 font-bold text-sm">{formatPrice(car.price)}</p>
-                  <p className="text-gray-500 text-xs">{car.year} • {car.mileage.toLocaleString()} mi</p>
-                  <p className="text-gray-500 text-xs">{car.location}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold mb-2 text-sm">Similarity Criteria:</h4>
-              <ul className="text-xs text-gray-600 space-y-1">
-                <li>• Same or similar make and model</li>
-                <li>• Within ±$5,000 price range</li>
-                <li>• Within ±2 years of manufacture</li>
-                <li>• Within ±20,000 miles</li>
-                <li>• Similar features and specifications</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="isInventory"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Show in Inventory</FormLabel>
+                    <FormDescription>Display this car in the main inventory list.</FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="isFeatured"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Show in Featured Vehicles</FormLabel>
+                    <FormDescription>Highlight this car on the homepage or featured sections.</FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Form Actions */}
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel} 
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={loading}
+          >
+            {loading ? "Saving..." : initialData ? "Update Car" : "Add Car"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }

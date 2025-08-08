@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+
 import { CarCard } from "@/components/car-card"
 import type { Car } from "@/lib/types"
-import Link from "next/link"
+
 
 interface SimilarCarsProps {
   currentCar: Car

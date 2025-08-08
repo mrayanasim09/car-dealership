@@ -9,13 +9,15 @@ import { Input } from "@/components/ui/input"
 import { CloudinaryImage } from "@/components/cloudinary-image"
 import { useComparison } from "@/lib/comparison-context"
 import type { Car } from "@/lib/types"
+import { StarRating } from "@/components/star-rating"
 
 interface CarComparisonProps {
   availableCars: Car[]
   initialCar?: Car
+  onClose?: () => void
 }
 
-export function CarComparison({ availableCars, initialCar }: CarComparisonProps) {
+export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
   const { selectedCars, addToComparison, removeFromComparison, clearComparison } = useComparison()
   const [isOpen, setIsOpen] = useState(false)
   const [showCarSelector, setShowCarSelector] = useState(false)
@@ -23,7 +25,7 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
   const [filterMake, setFilterMake] = useState("")
 
   // Memoize makes for better performance
-  const makes = useMemo(() => [...new Set(availableCars.map(car => car.make))], [availableCars])
+  const makes = useMemo(() => Array.from(new Set(availableCars.map(car => car.make))), [availableCars])
 
   const handleAddCar = useCallback((car: Car) => {
     addToComparison(car)
@@ -73,8 +75,8 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="comparison-title">
-      <Card className="w-full max-w-7xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 z-[50] flex items-center justify-center p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="comparison-title">
+      <Card className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border-0">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle id="comparison-title" className="flex items-center">
             <Scale className="h-5 w-5 mr-2" aria-hidden="true" />
@@ -86,7 +88,10 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
                 Clear All
               </Button>
             )}
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} aria-label="Close comparison">
+            <Button variant="ghost" size="sm" onClick={() => {
+              setIsOpen(false)
+              onClose?.()
+            }} aria-label="Close comparison dialog">
               <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
@@ -116,12 +121,11 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
                     aria-label={`Add ${car.title} to comparison`}
                   >
                     <CloudinaryImage
-                      src={car.images[0] || "/placeholder.svg"}
-                      alt={`${car.title} - ${car.year} ${car.make} ${car.model}`}
+                      src={car.images[0] || "/placeholder.jpg"}
+                      alt={car.title}
                       width={200}
                       height={120}
                       className="w-full h-24 object-cover rounded mb-3"
-                      loading="lazy"
                     />
                     <h4 className="font-semibold text-sm mb-1">{car.title}</h4>
                     <p className="text-red-600 font-bold text-sm">{formatPrice(car.price)}</p>
@@ -159,7 +163,6 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
                       width={300}
                       height={200}
                       className="w-full h-32 object-cover rounded-lg mb-3"
-                      loading="lazy"
                     />
                     <h3 className="font-bold text-sm mb-1">{car.title}</h3>
                     <p className="text-red-600 font-bold text-lg">{formatPrice(car.price)}</p>
@@ -194,10 +197,9 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
                             <CloudinaryImage
                               src={car.images[0] || "/placeholder.svg"}
                               alt={`${car.title} - ${car.year} ${car.make} ${car.model}`}
-                              width={80}
-                              height={60}
-                              className="w-16 h-12 object-cover rounded mb-2"
-                              loading="lazy"
+                              width={120}
+                              height={90}
+                              className="w-28 h-20 object-cover rounded-lg mb-2 shadow"
                             />
                             <span className="text-sm font-medium">{car.make} {car.model}</span>
                           </div>
@@ -233,19 +235,19 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Rating</td>
+                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">User Rating</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">
-                          {car.rating ? `${car.rating.toFixed(1)} ⭐` : 'N/A'}
+                          <StarRating rating={car.rating || 0} size="sm" interactive={false} />
                         </td>
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Condition</td>
+                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Status</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">
-                          <Badge variant={car.condition === 'Excellent' ? 'default' : 'secondary'}>
-                            {car.condition}
+                          <Badge variant={car.approved ? 'default' : 'secondary'}>
+                            {car.approved ? 'Approved' : 'Pending'}
                           </Badge>
                         </td>
                       ))}
@@ -254,7 +256,7 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
                       <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Actions</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">
-                          <Button size="sm" className="bg-red-600 hover:bg-red-700" aria-label={`View details for ${car.title}`}>
+                          <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-400 hover:from-red-700 hover:to-red-500 text-white rounded-lg shadow font-semibold px-4 py-2 transition-all" aria-label={`View details for ${car.title}`}>
                             View Details
                           </Button>
                         </td>
@@ -270,7 +272,7 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
 
       {/* Car Selection Modal */}
       {showCarSelector && (
-        <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="car-selector-title">
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="car-selector-title">
           <Card className="w-full max-w-4xl max-h-[80vh] overflow-y-auto">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle id="car-selector-title">Select Cars to Compare</CardTitle>
@@ -329,7 +331,6 @@ export function CarComparison({ availableCars, initialCar }: CarComparisonProps)
                       width={200}
                       height={120}
                       className="w-full h-24 object-cover rounded mb-3"
-                      loading="lazy"
                     />
                     <h4 className="font-semibold text-sm mb-1">{car.title}</h4>
                     <p className="text-red-600 font-bold text-sm">{formatPrice(car.price)}</p>

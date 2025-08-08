@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CloudinaryImage } from "@/components/cloudinary-image"
+
 import { useToast } from "@/components/ui/use-toast"
 import { submitContactForm } from "@/lib/firebase"
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send, Car, CreditCard, Wrench } from "lucide-react"
@@ -21,11 +21,72 @@ export function ContactContent() {
     subject: "",
     message: "",
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
+    return phone === "" || phoneRegex.test(phone.replace(/\s/g, ""))
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required"
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters"
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    if (formData.phone.trim() && !validatePhone(formData.phone)) {
+      newErrors.phone = "Please enter a valid phone number"
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "Subject is required"
+    } else if (formData.subject.trim().length < 5) {
+      newErrors.subject = "Subject must be at least 5 characters"
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "Message is required"
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = "Message must be at least 10 characters"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Clear previous errors
+    setErrors({})
+    
+    // Validate form
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors in the form.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -41,7 +102,8 @@ export function ContactContent() {
         subject: "",
         message: "",
       })
-    } catch (error) {
+      setErrors({})
+    } catch {
       toast({
         title: "Error",
         description: "Failed to send message. Please try again or call us directly.",
@@ -63,7 +125,7 @@ export function ContactContent() {
     {
       icon: Phone,
       title: "Call Us 24/7",
-      details: ["+1 424-303-0386", "+1 310-972-0341", "+1 310-350-7709", "+1 310-904-8377", "Available 24/7 for calls, SMS & WhatsApp"],
+      details: ["+1 424-303-0386", "+1 310-350-7709", "+1 310-972-0341", "+1 310-904-8377", "Available 24/7 for calls, SMS & WhatsApp"],
       action: "Call Now",
       actionUrl: "tel:+14243030386",
     },
@@ -108,24 +170,24 @@ export function ContactContent() {
   ]
 
   return (
-    <div className="py-16">
+    <div className="bg-black text-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-gray-900 to-gray-700 text-white py-20">
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+      <section className="relative bg-gradient-to-r from-gray-900 to-black text-white py-20">
+        <div className="absolute inset-0 bg-black opacity-70"></div>
         <div className="relative container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Contact Us</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">Contact Us</h1>
           <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-3xl mx-auto">
-            Get in touch with our team. We're here to help you find your perfect car.
+            We&apos;re here to help you find the perfect vehicle and answer any questions you may have.
           </p>
         </div>
       </section>
 
       {/* Contact Information */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Get In Touch</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-4">Get In Touch</h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">
               Multiple ways to reach us. Choose what works best for you.
             </p>
           </div>
@@ -133,13 +195,13 @@ export function ContactContent() {
             {contactInfo.map((info, index) => {
               const IconComponent = info.icon
               return (
-                <Card key={index} className="text-center h-full">
+                <Card key={index} className="text-center h-full bg-gray-800 border-gray-700">
                   <CardContent className="p-6">
-                    <IconComponent className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{info.title}</h3>
+                    <IconComponent className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-3">{info.title}</h3>
                     <div className="space-y-1 mb-4">
                       {info.details.map((detail, idx) => (
-                        <p key={idx} className="text-gray-600">
+                        <p key={idx} className="text-gray-300">
                           {detail}
                         </p>
                       ))}
@@ -161,68 +223,88 @@ export function ContactContent() {
       </section>
 
       {/* Contact Form & Map */}
-      <section className="py-16">
+      <section className="py-16 bg-black">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Send Us a Message</h2>
-              <Card>
+              <h2 className="text-3xl font-bold text-white mb-6">Send Us a Message</h2>
+              <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="name">Full Name *</Label>
+                        <Label htmlFor="name" className="text-white">Full Name *</Label>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.name ? "border-red-500" : ""}`}
                           required
                         />
+                        {errors.name && (
+                          <p className="text-red-400 text-sm mt-1">{errors.name}</p>
+                        )}
                       </div>
                       <div>
-                        <Label htmlFor="email">Email *</Label>
+                        <Label htmlFor="email" className="text-white">Email *</Label>
                         <Input
                           id="email"
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.email ? "border-red-500" : ""}`}
                           required
                         />
+                        {errors.email && (
+                          <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+                        )}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="phone">Phone Number</Label>
+                        <Label htmlFor="phone" className="text-white">Phone Number</Label>
                         <Input
                           id="phone"
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.phone ? "border-red-500" : ""}`}
                         />
+                        {errors.phone && (
+                          <p className="text-red-400 text-sm mt-1">{errors.phone}</p>
+                        )}
                       </div>
                       <div>
-                        <Label htmlFor="subject">Subject *</Label>
+                        <Label htmlFor="subject" className="text-white">Subject *</Label>
                         <Input
                           id="subject"
                           value={formData.subject}
                           onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.subject ? "border-red-500" : ""}`}
                           required
                         />
+                        {errors.subject && (
+                          <p className="text-red-400 text-sm mt-1">{errors.subject}</p>
+                        )}
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="message">Message *</Label>
+                      <Label htmlFor="message" className="text-white">Message *</Label>
                       <Textarea
                         id="message"
                         rows={6}
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                         placeholder="Tell us how we can help you..."
+                        className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.message ? "border-red-500" : ""}`}
                         required
                       />
+                      {errors.message && (
+                        <p className="text-red-400 text-sm mt-1">{errors.message}</p>
+                      )}
                     </div>
 
                     <Button
@@ -243,11 +325,12 @@ export function ContactContent() {
             <div className="space-y-8">
               {/* Map */}
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Find Us</h3>
-                <Card>
+                <h3 className="text-2xl font-bold text-white mb-4">Find Us</h3>
+                <Card className="bg-gray-800 border-gray-700">
                   <CardContent className="p-0">
-                    <div className="relative h-64 bg-gray-200 rounded-lg overflow-hidden">
+                    <div className="relative h-64 bg-gray-700 rounded-lg overflow-hidden">
                       <iframe
+                        title="AM Tycoons Inc. Location Map"
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3313.8!2d-118.0686423!3d33.9046666!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80dd2d2b1e8dfd29%3A0xed62bb21e3e561f6!2s12440%20Firestone%20Blvd%2C%20Norwalk%2C%20CA%2090650!5e0!3m2!1sen!2sus!4v1699999999999!5m2!1sen!2sus"
                         width="100%"
                         height="100%"
@@ -264,11 +347,11 @@ export function ContactContent() {
 
               {/* Business Hours */}
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Business Hours</h3>
-                <Card>
+                <h3 className="text-2xl font-bold text-white mb-4">Business Hours</h3>
+                <Card className="bg-gray-800 border-gray-700">
                   <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Clock className="h-5 w-5 mr-2 text-red-600" />
+                    <CardTitle className="flex items-center text-white">
+                      <Clock className="h-5 w-5 mr-2 text-red-500" />
                       Hours of Operation
                     </CardTitle>
                   </CardHeader>
@@ -276,8 +359,8 @@ export function ContactContent() {
                     <div className="space-y-3">
                       {hours.map((hour, index) => (
                         <div key={index} className="flex justify-between items-center">
-                          <span className="font-medium text-gray-900">{hour.day}</span>
-                          <span className="text-gray-600">{hour.time}</span>
+                          <span className="font-medium text-white">{hour.day}</span>
+                          <span className="text-gray-300">{hour.time}</span>
                         </div>
                       ))}
                     </div>
@@ -290,23 +373,23 @@ export function ContactContent() {
       </section>
 
       {/* Services */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Services</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              From sales to service, we're your one-stop automotive destination.
+            <h2 className="text-3xl font-bold text-white mb-4">Our Services</h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">
+              From sales to service, we&apos;re your one-stop automotive destination.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => {
               const IconComponent = service.icon
               return (
-                <Card key={index} className="text-center">
+                <Card key={index} className="text-center bg-gray-800 border-gray-700">
                   <CardContent className="p-6">
-                    <IconComponent className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
-                    <p className="text-gray-600">{service.description}</p>
+                    <IconComponent className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-3">{service.title}</h3>
+                    <p className="text-gray-300">{service.description}</p>
                   </CardContent>
                 </Card>
               )

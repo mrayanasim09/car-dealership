@@ -26,8 +26,18 @@ export interface Car {
   reviews: Review[]
   approved: boolean
   listedAt: Date
+  createdAt?: Date
   isFeatured?: boolean
   isInventory?: boolean
+}
+
+export interface CarImage {
+  id: string
+  carId: string
+  url: string
+  alt: string
+  order: number
+  createdAt: Date
 }
 
 export interface Review {

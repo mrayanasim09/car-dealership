@@ -11,11 +11,10 @@ import { SmartSearch } from "@/components/smart-search"
 import { FilterPanel } from "@/components/filter-panel"
 import { CarComparison } from "@/components/car-comparison"
 import { WhatsAppButton } from "@/components/whatsapp-button"
-import { getAllCars, isFirebaseAvailable } from "@/lib/firebase" // Corrected import
+import { getAllCars } from "@/lib/firebase"
 import type { Car } from "@/lib/types"
 import { useAuth } from "@/lib/auth-context"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { Phone, MessageCircle, MessageSquare } from "lucide-react"
 
 export default function BrowsePage() {
   const [allCars, setAllCars] = useState<Car[]>([])
@@ -29,9 +28,10 @@ export default function BrowsePage() {
       const fetchCars = async () => {
         try {
           const carsFromDb = await getAllCars()
-          setAllCars(carsFromDb.filter(car => car.approved !== false))
-        } catch (err: any) {
-          setError(err.message || "Failed to load cars.")
+          setAllCars(carsFromDb.filter((car: any) => car.approved !== false))
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : "Failed to load cars."
+          setError(errorMessage)
         } finally {
           setDataLoading(false)
         }
@@ -44,7 +44,7 @@ export default function BrowsePage() {
   }, [authLoading, isFirebaseAvailable])
   
   const sortedCars = useMemo(() => {
-    let carsToSort = [...allCars];
+    const carsToSort = [...allCars];
     switch (sortBy) {
       case "price-low-high":
         return carsToSort.sort((a, b) => a.price - b.price);

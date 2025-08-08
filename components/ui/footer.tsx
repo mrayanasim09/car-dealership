@@ -4,12 +4,10 @@ import Link from "next/link";
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from "react-icons/fa";
 
 const phoneNumber = [
-  "+1 310-904-8377",
-  "+1 800-555-1234",
-  "+1 888-777-5678",
-  "+1 416-904-8377", // Assuming you wanted 4 numbers, adding placeholders
-  "+1 647-904-8377"
-
+  "+1 424-303-0386",
+  "+1 310-350-7709",
+  "+1 310-972-0341",
+  "+1 310-904-8377"
 ];
 const handleCall = (number: string) => {
   window.location.href = `tel:${number.replace(/\s/g, '')}`;

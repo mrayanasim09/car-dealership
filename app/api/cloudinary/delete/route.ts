@@ -3,9 +3,9 @@ import { v2 as cloudinary } from 'cloudinary';
 import { NextRequest, NextResponse } from 'next/server';
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'doifsytuh',
-  api_key: process.env.CLOUDINARY_API_KEY || '643763252348165',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'WVB1AscpBsFl8L0VHMdoykC_S6s',
+  cloud_name: 'doifsytuh',
+  api_key: '643763252348165',
+  api_secret: 'WVB1AscpBsFl8L0VHMdoykC_S6s',
 });
 
 export async function POST(request: NextRequest) {
@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Deleting image with public ID:', publicId);
     
-    // Delete from Cloudinary (public ID already includes folder path)
-    const result = await cloudinary.uploader.destroy(publicId);
+    // Delete from car-images folder
+    const result = await cloudinary.uploader.destroy(`car-images/${publicId}`);
     
     console.log('Cloudinary delete result:', result);
     

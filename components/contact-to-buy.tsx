@@ -16,8 +16,8 @@ export function ContactToBuy({ car, variant = "card" }: ContactToBuyProps) {
   
   const phoneNumbers = [
     { number: "+14243030386", label: "+1 424-303-0386" },
-    { number: "+13109720341", label: "+1 310-972-0341" }, 
     { number: "+13103507709", label: "+1 310-350-7709" },
+    { number: "+13109720341", label: "+1 310-972-0341" },
     { number: "+13109048377", label: "+1 310-904-8377" }
   ]
 
@@ -31,14 +31,14 @@ export function ContactToBuy({ car, variant = "card" }: ContactToBuyProps) {
 
   const handleWhatsApp = (phoneNumber: string) => {
     const message = encodeURIComponent(
-      `Hi! I'm interested in purchasing the ${car.title} (${car.year}) listed for ${formatPrice(car.price)}. Can we discuss the details?`
+      `Hi! I&apos;m interested in purchasing the ${car.title} (${car.year}) listed for ${formatPrice(car.price)}. Can we discuss the details?`
     )
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank')
   }
 
   const handleScheduleViewing = (phoneNumber: string) => {
     const message = encodeURIComponent(
-      `Hi! I'd like to schedule a viewing for the ${car.title} (${car.year}). When would be a good time?`
+      `Hi! I&apos;d like to schedule a viewing for the ${car.title} (${car.year}). When would be a good time?`
     )
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank')
   }
@@ -104,87 +104,86 @@ export function ContactToBuy({ car, variant = "card" }: ContactToBuyProps) {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800">
-      <CardContent className="p-4 sm:p-6">
-        <div className="text-center mb-4">
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
-            Ready to Buy This Car?
-          </h3>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Contact us directly to purchase or get more information
-          </p>
-        </div>
+    <Card className="bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Interested in this vehicle?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Get in touch with us to learn more or schedule a viewing.
+            </p>
+          </div>
 
-        {/* All Phone Numbers */}
-        <div className="mb-4 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-          <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Call us 24/7:</p>
-          <div className="flex flex-wrap gap-1 sm:gap-2 text-xs">
+          {/* Quick Action Buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button 
+              onClick={() => handlePhoneCall(phoneNumbers[0].number)}
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <Phone className="h-4 w-4 mr-2" />
+              Call to Buy Now - {phoneNumbers[0].label}
+            </Button>
+            <Button 
+              onClick={() => handleWhatsApp(phoneNumbers[0].number)}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              WhatsApp
+            </Button>
+          </div>
+
+          {/* Phone Numbers Display */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-gray-900 dark:text-white">Contact Numbers:</h4>
             {phoneNumbers.map((phone, index) => (
-              <span key={index} className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300">
-                {phone.label}
-              </span>
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Phone className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-gray-900 dark:text-white">{phone.label}</span>
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={() => handlePhoneCall(phoneNumbers[0].number)}
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                  >
+                    Call
+                  </Button>
+                  <Button
+                    onClick={() => handleSMS(phoneNumbers[0].number)}
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                  >
+                    SMS
+                  </Button>
+                  <Button
+                    onClick={() => handleWhatsApp(phoneNumbers[0].number)}
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                  >
+                    WhatsApp
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
 
-        <div className="space-y-3">
-          {/* Contact buttons for each phone number - Mobile Optimized */}
-          {phoneNumbers.map((phone, index) => (
-            <div key={index} className="grid grid-cols-3 gap-2">
-              <Button 
-                onClick={() => handlePhoneCall(phone.number)}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm py-3 min-h-[44px]"
-              >
-                <Phone className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Call</span>
-                <span className="sm:hidden">📞</span>
-              </Button>
-              <Button 
-                onClick={() => handleSMS(phone.number)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm py-3 min-h-[44px]"
-              >
-                <MessageSquare className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">SMS</span>
-                <span className="sm:hidden">💬</span>
-              </Button>
-              <Button 
-                onClick={() => handleWhatsApp(phone.number)}
-                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm py-3 min-h-[44px]"
-              >
-                <MessageCircle className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">WhatsApp</span>
-                <span className="sm:hidden">📱</span>
-              </Button>
-            </div>
-          ))}
-
-          <Button 
-            onClick={() => handleScheduleViewing(phoneNumbers[0].number)}
-            variant="outline"
-            className="w-full border-red-300 text-red-700 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20 transition-all duration-300 py-3 min-h-[44px]"
-          >
-            <Calendar className="h-5 w-5 mr-3" />
-            Schedule a Viewing
-          </Button>
-
-          <Button 
-            onClick={() => setIsInterested(!isInterested)}
-            variant="ghost"
-            className={`w-full transition-all duration-300 min-h-[44px] ${
-              isInterested 
-                ? 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20' 
-                : 'text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400'
-            }`}
-          >
-            <Heart className={`h-4 w-4 mr-2 ${isInterested ? 'fill-current' : ''}`} />
-            {isInterested ? 'Added to Favorites' : 'Save to Favorites'}
-          </Button>
-        </div>
-
-        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-          <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200 text-center">
-            💡 <strong>Quick Response:</strong> We typically respond within 15 minutes during business hours
-          </p>
+          {/* Additional Actions */}
+          <div className="space-y-3">
+            <Button
+              onClick={() => handleScheduleViewing(phoneNumbers[0].number)}
+              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Schedule Viewing
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

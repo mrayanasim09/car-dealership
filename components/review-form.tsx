@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { StarRating } from "@/components/star-rating"
 import { addReview, isFirebaseAvailable } from "@/lib/firebase"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 
 interface ReviewFormProps {
   carId: string
@@ -46,7 +46,8 @@ export function ReviewForm({ carId }: ReviewFormProps) {
     setIsSubmitting(true)
 
     try {
-      await addReview(carId, {
+      await addReview({
+        carId,
         name: name.trim(),
         comment: comment.trim(),
         stars: rating,

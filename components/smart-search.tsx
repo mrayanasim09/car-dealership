@@ -3,20 +3,19 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Search, X, TrendingUp } from "lucide-react"
+import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+
 import Link from "next/link"
 import type { Car } from "@/lib/types"
 
 interface SmartSearchProps {
   cars: Car[]
-  onSearch?: (query: string) => void
   placeholder?: string
 }
 
-export function SmartSearch({ cars = [], onSearch, placeholder = "Search by make, model, year, or keyword..." }: SmartSearchProps) {
+export function SmartSearch({ cars = [], placeholder = "Search by make, model, year, or keyword..." }: SmartSearchProps) {
   const [query, setQuery] = useState("")
   const [suggestions, setSuggestions] = useState<Car[]>([])
   const [isOpen, setIsOpen] = useState(false)

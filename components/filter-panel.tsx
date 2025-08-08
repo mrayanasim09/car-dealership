@@ -7,12 +7,30 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+interface FilterData {
+  search: string
+  make: string
+  minPrice: string
+  maxPrice: string
+  minYear: string
+  maxYear: string
+  maxMileage: string
+}
+
+interface ProcessedFilters extends Omit<FilterData, 'minPrice' | 'maxPrice' | 'minYear' | 'maxYear' | 'maxMileage'> {
+  minPrice: number | null
+  maxPrice: number | null
+  minYear: number | null
+  maxYear: number | null
+  maxMileage: number | null
+}
+
 interface FilterPanelProps {
-  onFilter: (filters: any) => void
+  onFilter: (filters: ProcessedFilters) => void
 }
 
 export function FilterPanel({ onFilter }: FilterPanelProps) {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterData>({
     search: "",
     make: "",
     minPrice: "",
@@ -28,7 +46,7 @@ export function FilterPanel({ onFilter }: FilterPanelProps) {
   }
 
   const applyFilters = () => {
-    const processedFilters = {
+    const processedFilters: ProcessedFilters = {
       ...filters,
       minPrice: filters.minPrice ? Number.parseInt(filters.minPrice) : null,
       maxPrice: filters.maxPrice ? Number.parseInt(filters.maxPrice) : null,
@@ -40,7 +58,7 @@ export function FilterPanel({ onFilter }: FilterPanelProps) {
   }
 
   const clearFilters = () => {
-    const clearedFilters = {
+    const clearedFilters: FilterData = {
       search: "",
       make: "",
       minPrice: "",
@@ -50,7 +68,14 @@ export function FilterPanel({ onFilter }: FilterPanelProps) {
       maxMileage: "",
     }
     setFilters(clearedFilters)
-    onFilter(clearedFilters)
+    onFilter({
+      ...clearedFilters,
+      minPrice: null,
+      maxPrice: null,
+      minYear: null,
+      maxYear: null,
+      maxMileage: null,
+    })
   }
 
   return (

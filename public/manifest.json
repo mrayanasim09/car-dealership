@@ -1,6 +1,6 @@
 {
   "name": "AM Tycoons Inc. - Premium Car Dealership",
-  "short_name": "AM Tycoons",
+  "short_name": "AM Tycoons Inc.",
   "description": "Discover premium cars at AM Tycoons Inc. Your trusted car dealership in Los Angeles. Browse our extensive inventory of quality vehicles with competitive financing options.",
   "start_url": "/",
   "display": "standalone",
@@ -96,7 +96,7 @@
     {
       "name": "About Us",
       "short_name": "About",
-      "description": "Learn more about AM Tycoons",
+      "description": "Learn more about AM Tycoons Inc.",
       "url": "/about",
       "icons": [
         {

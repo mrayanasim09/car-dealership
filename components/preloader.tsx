@@ -40,7 +40,7 @@ export function Preloader() {
         <div className="mb-8 animate-pulse">
           <Image
             src="/AMTycons.png"
-            alt="AM Tycoons"
+            alt="AM Tycoons Inc."
             width={200}
             height={80}
             className="mx-auto h-20 w-auto"

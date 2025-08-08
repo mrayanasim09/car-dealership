@@ -1,11 +1,7 @@
-import { Metadata } from "next"
-import { AdminDashboard } from "@/components/admin/admin-dashboard"
-import { ProtectedRoute } from "@/components/admin/protected-route"
+"use client"
 
-export const metadata: Metadata = {
-  title: "Admin Dashboard - AM Tycoons Inc.",
-  description: "Admin dashboard for AM Tycoons Inc. dealership management",
-}
+import { AdminDashboard } from "@/components/admin/admin-dashboard"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function AdminDashboardPage() {
   return (
@@ -13,5 +9,4 @@ export default function AdminDashboardPage() {
       <AdminDashboard />
     </ProtectedRoute>
   )
-}
-
+} 

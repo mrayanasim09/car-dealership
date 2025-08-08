@@ -12,6 +12,10 @@ export interface AdminUser {
 
 export async function authenticateAdmin(email: string, password: string): Promise<AdminUser | null> {
   try {
+    if (!auth) {
+      throw new Error('Firebase Auth not initialized')
+    }
+    
     const userCredential = await signInWithEmailAndPassword(auth, email, password)
     const user = userCredential.user
     
@@ -47,7 +51,7 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     }
 
     return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(auth!, (user) => {
         unsubscribe()
         
         if (!user) {
@@ -89,6 +93,10 @@ export async function requireAdmin(): Promise<AdminUser> {
 
 export async function logoutAdmin(): Promise<void> {
   try {
+    if (!auth) {
+      throw new Error('Firebase Auth not initialized')
+    }
+    
     await signOut(auth)
   } catch (error) {
     console.error('Logout error:', error)
@@ -125,4 +133,14 @@ export function verifyAuthToken(token: string): AdminUser | null {
   } catch {
     return null
   }
+}
+
+// Export authManager for backward compatibility
+export const authManager = {
+  authenticateAdmin,
+  getCurrentAdmin,
+  requireAdmin,
+  logoutAdmin,
+  createAuthToken,
+  verifyAuthToken
 } 

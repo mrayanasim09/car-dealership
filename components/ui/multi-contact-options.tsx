@@ -19,8 +19,8 @@ interface MultiContactOptionsProps {
 
 const CONTACT_NUMBERS: ContactOption[] = [
   { number: "+14243030386", label: "+1 424-303-0386" },
-  { number: "+13109720341", label: "+1 310-972-0341" },
   { number: "+13103507709", label: "+1 310-350-7709" },
+  { number: "+13109720341", label: "+1 310-972-0341" },
   { number: "+13109048377", label: "+1 310-904-8377" }
 ]
 

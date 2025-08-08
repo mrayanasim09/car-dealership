@@ -6,6 +6,63 @@
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Better text readability */
+  .text-readable {
+    color: hsl(var(--text-primary));
+    line-height: 1.6;
+  }
+  
+  .text-readable-secondary {
+    color: hsl(var(--text-secondary));
+    line-height: 1.6;
+  }
+  
+  .text-readable-muted {
+    color: hsl(var(--text-muted));
+    line-height: 1.6;
+  }
+  
+  /* Better link styling */
+  .link-readable {
+    color: hsl(var(--link-color));
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .link-readable:hover {
+    color: hsl(var(--link-hover));
+  }
+  
+  /* Better button styling */
+  .btn-primary-readable {
+    background-color: hsl(var(--button-primary));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary-readable:hover {
+    background-color: hsl(var(--button-primary-hover));
+    transform: translateY(-1px);
+  }
+  
+  .btn-secondary-readable {
+    background-color: hsl(var(--button-secondary));
+    color: hsl(var(--text-primary));
+    border: 1px solid hsl(var(--border));
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-secondary-readable:hover {
+    background-color: hsl(var(--button-secondary-hover));
+  }
 }
 
 @layer base {
@@ -43,6 +100,16 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 4 91% 58%;
+    /* Custom colors for better readability */
+    --text-primary: 0 0% 9%;
+    --text-secondary: 0 0% 45%;
+    --text-muted: 0 0% 65%;
+    --link-color: 4 91% 58%;
+    --link-hover: 4 91% 48%;
+    --button-primary: 4 91% 58%;
+    --button-primary-hover: 4 91% 48%;
+    --button-secondary: 0 0% 96%;
+    --button-secondary-hover: 0 0% 90%;
   }
   .dark {
     --background: 0 0% 3.9%;

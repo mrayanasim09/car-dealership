@@ -175,28 +175,14 @@ function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
-    console.log('🔍 DEBUG CHECKPOINT 14: useToast hook executing');
-    (window as any).debugCheckpoint14 = true;
-    
-    try {
-      listeners.push(setState)
-      console.log('🔍 DEBUG CHECKPOINT 15: useToast listener added');
-      (window as any).debugCheckpoint15 = true;
-      
-      return () => {
-        console.log('🔍 DEBUG CHECKPOINT 16: useToast cleanup executing');
-        (window as any).debugCheckpoint16 = true;
-        
-        const index = listeners.indexOf(setState)
-        if (index > -1) {
-          listeners.splice(index, 1)
-        }
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
       }
-    } catch (error) {
-      console.error('🔍 Error in useToast:', error);
-      (window as any).debugCheckpointToastError = error;
     }
-  }, [])
+  }, [state])
 
   return {
     ...state,

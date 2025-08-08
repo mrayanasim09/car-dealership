@@ -1,271 +1,241 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useCallback, useRef } from "react"
+import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { X, Upload, Image as ImageIcon, Link } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 
 interface ImageUploadProps {
-  carId?: string
+  onImagesUploaded: (urls: string[]) => void
   existingImages?: string[]
-  onImagesChange: (images: string[]) => void
+  onImageRemove?: (imageUrl: string) => void
   maxImages?: number
+  className?: string
 }
 
 export function ImageUpload({ 
-  carId, 
+  onImagesUploaded, 
   existingImages = [], 
-  onImagesChange, 
-  maxImages = 10 
+  onImageRemove,
+  maxImages = 10,
+  className = ""
 }: ImageUploadProps) {
-  const [images, setImages] = useState<string[]>(existingImages)
+  const [dragActive, setDragActive] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [dragOver, setDragOver] = useState(false)
-  const [urlInput, setUrlInput] = useState("")
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadedImages, setUploadedImages] = useState<string[]>(existingImages)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = async (files: FileList | null) => {
-    if (!files || files.length === 0) return
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
 
-    const fileArray = Array.from(files)
-    const validFiles = fileArray.filter(file => {
-      const isValidType = file.type.startsWith('image/')
-      const isValidSize = file.size <= 10 * 1024 * 1024 // 10MB limit
-      
-      if (!isValidType) {
-        toast.error(`${file.name} is not a valid image file`)
-        return false
-      }
-      
-      if (!isValidSize) {
-        toast.error(`${file.name} is too large. Maximum size is 10MB`)
-        return false
-      }
-      
-      return true
+    const response = await fetch('/api/cloudinary/upload', {
+      method: 'POST',
+      body: formData,
     })
 
-    if (validFiles.length === 0) return
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Upload failed')
+    }
 
-    if (images.length + validFiles.length > maxImages) {
+    const result = await response.json()
+    return result.url
+  }
+
+  const handleUpload = useCallback(async (files: FileList | File[]) => {
+    const fileArray = Array.from(files)
+    const imageFiles = fileArray.filter(file => file.type.startsWith('image/'))
+    
+    if (imageFiles.length === 0) {
+      toast.error('Please select valid image files')
+      return
+    }
+
+    if (uploadedImages.length + imageFiles.length > maxImages) {
       toast.error(`Maximum ${maxImages} images allowed`)
       return
     }
 
     setUploading(true)
-    
+    setUploadProgress(0)
+
     try {
-      // Create temporary URLs for preview
-      const newImageUrls = validFiles.map(file => URL.createObjectURL(file))
-      toast.success(`Added ${newImageUrls.length} images for preview`)
+      const uploadPromises = imageFiles.map(async (file, index) => {
+        const url = await uploadToCloudinary(file)
+        setUploadProgress(((index + 1) / imageFiles.length) * 100)
+        return url
+      })
+
+      const newUrls = await Promise.all(uploadPromises)
+      const allImages = [...uploadedImages, ...newUrls]
       
-      const updatedImages = [...images, ...newImageUrls]
-      setImages(updatedImages)
-      onImagesChange(updatedImages)
+      setUploadedImages(allImages)
+      onImagesUploaded(allImages)
       
+      toast.success(`${imageFiles.length} image(s) uploaded successfully!`)
     } catch (error) {
-      console.error('Error processing images:', error)
-      toast.error('Failed to process images. Please try again.')
+      console.error('Upload error:', error)
+      toast.error(error instanceof Error ? error.message : 'Upload failed')
     } finally {
       setUploading(false)
+      setUploadProgress(0)
     }
-  }
+  }, [uploadedImages, maxImages, onImagesUploaded])
 
-  const handleRemoveImage = async (imageUrl: string, index: number) => {
-    try {
-      // Revoke object URL for temporary images
-      if (imageUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(imageUrl)
-      }
-      
-      const updatedImages = images.filter((_, i) => i !== index)
-      setImages(updatedImages)
-      onImagesChange(updatedImages)
-      toast.success('Image removed successfully')
-      
-    } catch (error) {
-      console.error('Error removing image:', error)
-      toast.error('Failed to remove image')
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
     }
-  }
+  }, [])
 
-  const handleAddUrl = () => {
-    const url = urlInput.trim()
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
     
-    if (!url) {
-      toast.error('Please enter a valid image URL')
-      return
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleUpload(e.dataTransfer.files)
     }
+  }, [handleUpload])
 
-    // Basic URL validation
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      toast.error('Please enter a valid URL starting with http:// or https://')
-      return
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleUpload(e.target.files)
     }
+  }, [handleUpload])
 
-    if (images.length >= maxImages) {
-      toast.error(`Maximum ${maxImages} images allowed`)
-      return
-    }
-
-    const updatedImages = [...images, url]
-    setImages(updatedImages)
-    onImagesChange(updatedImages)
-    setUrlInput('')
-    toast.success('Image URL added successfully')
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(false)
-    handleFileSelect(e.dataTransfer.files)
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFileSelect(e.target.files)
-  }
+  const handleImageRemove = useCallback((imageUrl: string) => {
+    const newImages = uploadedImages.filter(url => url !== imageUrl)
+    setUploadedImages(newImages)
+    onImagesUploaded(newImages)
+    onImageRemove?.(imageUrl)
+    toast.success('Image removed')
+  }, [uploadedImages, onImagesUploaded, onImageRemove])
 
   const triggerFileInput = () => {
     fileInputRef.current?.click()
   }
 
   return (
-    <div className="space-y-4">
-      <Label className="text-sm font-medium">
-        Car Images ({images.length}/{maxImages})
-      </Label>
-      
-      {/* URL Input Section */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium flex items-center gap-2">
-          <Link className="h-4 w-4" />
-          Add Cloudinary Image URLs
-        </Label>
-        <div className="flex gap-2">
-          <Input
-            type="url"
-            placeholder="https://res.cloudinary.com/your-cloud/image/upload/v1234567890/car-images/your-image.jpg"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleAddUrl()
-              }
-            }}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAddUrl}
-            disabled={!urlInput.trim() || images.length >= maxImages}
-          >
-            Add URL
-          </Button>
-        </div>
-        <p className="text-xs text-gray-500">
-          Paste your Cloudinary image URLs here. Press Enter or click "Add URL" to add.
-        </p>
-      </div>
-
-      {/* Upload Area for Local Files (Preview Only) */}
-      <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-          dragOver 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 hover:border-gray-400'
-        }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleInputChange}
-          className="hidden"
-        />
-        
+    <div className={`space-y-4 ${className}`}>
+      {/* Upload Progress */}
+      {uploading && (
         <div className="space-y-2">
-          <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={triggerFileInput}
-              disabled={uploading || images.length >= maxImages}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {uploading ? 'Processing...' : 'Choose Images for Preview'}
-            </Button>
+          <div className="flex items-center justify-between text-sm">
+            <span>Uploading images...</span>
+            <span>{Math.round(uploadProgress)}%</span>
           </div>
-          <p className="text-sm text-gray-500">
-            Or drag and drop images here for preview
-          </p>
-          <p className="text-xs text-gray-400">
-            PNG, JPG, GIF up to 10MB each (preview only)
-          </p>
+          <Progress value={uploadProgress} className="w-full" />
         </div>
-      </div>
+      )}
 
-      {/* Image Preview Grid */}
-      {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((imageUrl, index) => (
-            <div key={index} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                <img
-                  src={imageUrl}
-                  alt={`Car image ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = '/placeholder.svg' // Fallback image
-                  }}
-                />
-              </div>
-              
-              {/* Remove button */}
+      {/* Existing Images Grid */}
+      {uploadedImages.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {uploadedImages.map((imageUrl, index) => (
+            <div key={index} className="relative group aspect-square">
+              <img
+                src={imageUrl}
+                alt={`Car image ${index + 1}`}
+                className="w-full h-full object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg" />
               <button
                 type="button"
-                onClick={() => handleRemoveImage(imageUrl, index)}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handleImageRemove(imageUrl)}
+                className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                title="Remove image"
               >
-                <X className="h-4 w-4" />
+                <X className="w-3 h-3" />
               </button>
-              
-              {/* Image index */}
-              <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                {index + 1}
+              <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Image {index + 1}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Instructions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-medium text-blue-900 mb-2">Instructions:</h4>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Upload your images to Cloudinary first</li>
-          <li>• Copy the Cloudinary URL and paste it in the URL field above</li>
-          <li>• You can also drag & drop local images for preview</li>
-          <li>• Maximum {maxImages} images allowed per car</li>
-        </ul>
+      {/* Upload Area */}
+      {uploadedImages.length < maxImages && (
+        <div
+          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+            dragActive 
+              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+          } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={uploading}
+          />
+          
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full">
+                <ImageIcon className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Drop images here or click to upload
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                PNG, JPG, GIF up to 10MB each
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                {uploadedImages.length} of {maxImages} images uploaded
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={triggerFileInput}
+              disabled={uploading}
+              className="mt-4"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Choose Files
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Max Images Warning */}
+      {uploadedImages.length >= maxImages && (
+        <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+          <span className="text-sm text-yellow-800 dark:text-yellow-200">
+            Maximum {maxImages} images reached. Remove some images to upload more.
+          </span>
+        </div>
+      )}
+
+      {/* Help Text */}
+      <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+        <p>• Supported formats: PNG, JPG, GIF</p>
+        <p>• Maximum file size: 10MB per image</p>
+        <p>• Maximum images: {maxImages}</p>
+        <p>• Drag and drop or click to select files</p>
       </div>
     </div>
   )

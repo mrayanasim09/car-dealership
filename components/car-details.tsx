@@ -2,19 +2,16 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CloudinaryImage } from "@/components/cloudinary-image"
 import { ContactToBuy } from "@/components/contact-to-buy"
 import { SimilarCars } from "@/components/similar-cars"
 import { CarImageCarousel } from "@/components/car-image-carousel"
 import { 
   Calendar, 
   MapPin, 
-  Car, 
+  Car as CarIcon, 
   Gauge, 
-  Fuel, 
-  Settings,
+
   Phone,
   Heart,
   Share2
@@ -25,9 +22,10 @@ import { useComparison } from "@/lib/comparison-context"
 interface CarDetailsProps {
   car: Car
   similarCars?: Car[]
+  loading?: boolean
 }
 
-export function CarDetails({ car, similarCars = [] }: CarDetailsProps) {
+export function CarDetails({ car, similarCars = [], loading = false }: CarDetailsProps) {
   const [isInterested, setIsInterested] = useState(false)
   const { addToComparison, removeFromComparison, isInComparison } = useComparison()
 
@@ -55,13 +53,45 @@ export function CarDetails({ car, similarCars = [] }: CarDetailsProps) {
     return new Intl.NumberFormat("en-US").format(mileage)
   }
 
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Loading skeleton for main content */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="animate-pulse">
+              <div className="bg-gray-200 dark:bg-gray-700 h-64 rounded-lg mb-6"></div>
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-6"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Loading skeleton for sidebar */}
+          <div className="space-y-6">
+            <div className="animate-pulse">
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Image Carousel */}
-          <CarImageCarousel images={car.images} title={car.title} />
+          <CarImageCarousel images={car.images} carTitle={car.title} />
 
           {/* Car Title and Price */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -123,7 +153,7 @@ export function CarDetails({ car, similarCars = [] }: CarDetailsProps) {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Car className="h-5 w-5 text-gray-500" />
+                  <CarIcon className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-600">Make & Model</p>
                     <p className="font-semibold">{car.make} {car.model}</p>
@@ -224,14 +254,14 @@ export function CarDetails({ car, similarCars = [] }: CarDetailsProps) {
 
           {/* Similar Cars */}
           {similarCars.length > 0 && (
-            <SimilarCars cars={similarCars} currentCarId={car.id} />
+            <SimilarCars cars={similarCars} currentCar={car} />
           )}
         </div>
 
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           {/* Contact Section */}
-          <ContactToBuy variant="card" />
+          <ContactToBuy car={car} variant="card" />
           
           {/* VIN Information */}
           {car.vin && (
