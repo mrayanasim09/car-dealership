@@ -84,10 +84,13 @@ const TestimonialsSection = dynamic(
   }
 )
 
-// Lazy load WhatsApp button
+// Lazy load WhatsApp button with intersection observer
 const WhatsAppButton = dynamic(
   () => import("@/components/whatsapp-button").then(m => ({ default: m.WhatsAppButton })),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => null
+  }
 )
 
 export default function HomePage() {

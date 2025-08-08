@@ -4,9 +4,7 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-hook-form', 'zod'],
-    optimizeCss: false,
-    optimizeServerReact: true,
-    serverComponentsExternalPackages: ['@prisma/client', '@vercel/analytics', '@vercel/speed-insights'],
+    serverComponentsExternalPackages: ['@prisma/client'],
     // Fix for SSR issues with client-side libraries
     serverActions: {
       bodySizeLimit: '2mb',
@@ -20,6 +18,11 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000, // 1 year
+    // Performance optimizations
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    loader: 'default',
+    unoptimized: false,
   },
   
 
@@ -28,15 +31,23 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: '/:path*',
         headers: [
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
           },
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
           },
           {
             key: 'X-XSS-Protection',
@@ -44,15 +55,11 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
+            value: 'origin-when-cross-origin',
           },
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
           },
           {
             key: 'Content-Security-Policy',
@@ -62,27 +69,25 @@ const nextConfig = {
       },
       // Performance headers for static assets
       {
-        source: '/_next/static/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      // Performance headers for images
-      {
-        source: '/_next/image(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      // Performance headers for fonts
-      {
         source: '/fonts/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/images/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/(.*)',
         headers: [
           {
             key: 'Cache-Control',
@@ -119,32 +124,24 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   
-  // Output configuration - removed standalone to fix build issues
-  
   // Power by header
   poweredByHeader: false,
-
-  // Environment variables
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
-
+  
   // Performance optimizations
   compress: true,
   productionBrowserSourceMaps: false,
   trailingSlash: false,
   swcMinify: true,
-
+  
+  // Environment variables
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  
   // Temporarily disable ESLint during build
   eslint: {
     ignoreDuringBuilds: true,
   },
-
-  // Performance optimizations
-  generateEtags: false,
-  
-  // Bundle analyzer (optional)
-  ...(process.env.ANALYZE === 'true' && withBundleAnalyzer({})),
 }
 
 export default nextConfig
