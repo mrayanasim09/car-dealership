@@ -1,100 +1,14 @@
 // app/car/[id]/page.tsx
 
-import { notFound } from "next/navigation"
-import { Metadata } from "next"
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
-import { Breadcrumb } from "@/components/breadcrumb"
-import { CarImageCarousel } from "@/components/car-image-carousel"
-import { ContactToBuy } from "@/components/contact-to-buy"
-import { SimilarCars } from "@/components/similar-cars"
-import { WhatsAppButton } from "@/components/whatsapp-button"
-import { getAllCars, getCarById, isFirebaseAvailable } from "@/lib/firebase"
-import type { Car } from "@/lib/types"
-
-// ISR: Revalidate every 10 minutes
-export const revalidate = 600
-
-// Generate metadata for car pages
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  try {
-    if (!isFirebaseAvailable()) {
-      return {
-        title: 'Vehicle Not Found - AM Tycoons Inc',
-        description: 'The requested vehicle could not be found.',
-      }
-    }
-    
-    const car = await getCarById(params.id)
-    
-    if (!car) {
-      return {
-        title: 'Vehicle Not Found - AM Tycoons Inc',
-        description: 'The requested vehicle could not be found.',
-      }
-    }
-
-    const price = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format((car as any).price)
-
-    return {
-      title: `${(car as any).title} - ${price} | AM Tycoons Inc`,
-      description: `${(car as any).year} ${(car as any).make} ${(car as any).model} for sale at ${price}. ${(car as any).mileage.toLocaleString()} miles. Located in ${(car as any).location}. Contact AM Tycoons Inc for details.`,
-      keywords: `${(car as any).make}, ${(car as any).model}, ${(car as any).year}, used car, pre-owned vehicle, ${(car as any).location}, car dealership, AM Tycoons Inc`,
-      openGraph: {
-        title: `${(car as any).title} - ${price}`,
-        description: `${(car as any).year} ${(car as any).make} ${(car as any).model} for sale at ${price}. ${(car as any).mileage.toLocaleString()} miles.`,
-        type: 'website',
-        url: `https://amtycoons.com/car/${(car as any).id}`,
-        images: (car as any).images.length > 0 ? [
-          {
-            url: (car as any).images[0].startsWith('http') ? (car as any).images[0] : `https://amtycoons.com${(car as any).images[0]}`,
-            width: 1200,
-            height: 630,
-            alt: (car as any).title,
-          }
-        ] : [],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: `${(car as any).title} - ${price}`,
-        description: `${(car as any).year} ${(car as any).make} ${(car as any).model} for sale at ${price}.`,
-        images: (car as any).images.length > 0 ? [(car as any).images[0]] : [],
-      },
-      alternates: {
-        canonical: `https://amtycoons.com/car/${(car as any).id}`,
-      },
-    }
-  } catch (error) {
-    console.error('Error generating metadata:', error)
-    return {
-      title: 'Vehicle Details - AM Tycoons Inc',
-      description: 'View vehicle details at AM Tycoons Inc.',
-    }
-  }
-}
-
-// Generate static params for all cars
-export async function generateStaticParams() {
-  try {
-    if (!isFirebaseAvailable()) {
-      return []
-    }
-    
-    const allCars = await getAllCars()
-    const approvedCars = allCars.filter((car: any) => car.approved === true)
-    
-    return approvedCars.map((car: any) => ({
-      id: car.id,
-    }))
-  } catch (error) {
-    console.error('Error generating static params:', error)
-    return []
-  }
-}
+import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
+import { Navbar } from '@/components/navbar'
+import { Footer } from '@/components/footer'
+import { CarDetails } from '@/components/car-details'
+import { CarImageCarousel } from '@/components/car-image-carousel'
+import { WhatsAppButton } from '@/components/whatsapp-button'
+import { getCarById } from '@/lib/firebase/server'
+import type { Car } from '@/lib/types'
 
 interface CarPageProps {
   params: {
@@ -102,103 +16,182 @@ interface CarPageProps {
   }
 }
 
-export default async function CarPage({ params }: CarPageProps) {
-  let car: Car | null = null
-  let allCars: Car[] = []
-
-  try {
-    if (isFirebaseAvailable()) {
-      const [carData, allCarsData] = await Promise.all([
-        getCarById(params.id),
-        getAllCars(),
-      ])
-      
-      if (!carData) {
-        notFound()
-      }
-      
-      car = carData
-      allCars = allCarsData
-    } else {
-      notFound()
+export async function generateMetadata({ params }: CarPageProps): Promise<Metadata> {
+  const car = await getCarById(params.id)
+  
+  if (!car) {
+    return {
+      title: 'Car Not Found - AM Tycoons Inc',
+      description: 'The requested vehicle could not be found.',
     }
-  } catch {
-    notFound()
   }
+
+  return {
+    title: `${car.title} - AM Tycoons Inc`,
+    description: `${car.year} ${car.make} ${car.model} for sale at AM Tycoons Inc. ${car.mileage.toLocaleString()} miles, located in ${car.location}. Contact us for more information.`,
+    keywords: `${car.make}, ${car.model}, ${car.year}, used car, pre-owned vehicle, ${car.location}, AM Tycoons Inc`,
+    openGraph: {
+      title: `${car.title} - AM Tycoons Inc`,
+      description: `${car.year} ${car.make} ${car.model} for sale at AM Tycoons Inc. ${car.mileage.toLocaleString()} miles, located in ${car.location}.`,
+      images: car.images && car.images.length > 0 ? car.images : ['/AMTycons_logo_transparent.png'],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${car.title} - AM Tycoons Inc`,
+      description: `${car.year} ${car.make} ${car.model} for sale at AM Tycoons Inc.`,
+      images: car.images && car.images.length > 0 ? [car.images[0]] : ['/AMTycons_logo_transparent.png'],
+    },
+  }
+}
+
+export default async function CarPage({ params }: CarPageProps) {
+  const car = await getCarById(params.id)
 
   if (!car) {
     notFound()
   }
 
-  const breadcrumbItems = [
-    { label: "Home", href: "/" },
-    { label: "Inventory", href: "/inventory" },
-    { label: (car as any).title }
-  ]
-
-  // Generate structured data for the car
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Car',
-    name: (car as any).title,
-    brand: {
-      '@type': 'Brand',
-      name: (car as any).make
-    },
-    model: (car as any).model,
-    vehicleModelDate: (car as any).year.toString(),
-    mileageFromOdometer: {
-      '@type': 'QuantitativeValue',
-      value: (car as any).mileage,
-      unitCode: 'SMI' // Statute mile
-    },
-    color: (car as any).exteriorColor || 'Unknown',
-    vehicleCondition: 'https://schema.org/UsedCondition',
-    offers: {
-      '@type': 'Offer',
-      price: (car as any).price,
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
-      seller: {
-        '@type': 'AutoDealer',
-        name: 'AM Tycoons Inc',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: '12440 Firestone Blvd, Suite 3025D',
-          addressLocality: 'Norwalk',
-          addressRegion: 'CA',
-          postalCode: '90650',
-          addressCountry: 'US'
-        },
-        telephone: '+1-424-303-0386'
-      }
-    },
-    image: (car as any).images.length > 0 ? (car as any).images : [],
-    description: (car as any).description || `${(car as any).year} ${(car as any).make} ${(car as any).model} for sale at AM Tycoons Inc.`,
-    url: `https://amtycoons.com/car/${(car as any).id}`
-  }
-  
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      
+    <div className="min-h-screen bg-black">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <Breadcrumb items={breadcrumbItems} />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-              <CarImageCarousel images={(car as any).images} carTitle={(car as any).title} />
-              <SimilarCars currentCar={car} cars={allCars} />
+      
+      <main className="container mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <nav className="mb-6 text-sm text-gray-400">
+          <ol className="flex items-center space-x-2">
+            <li><a href="/" className="hover:text-white transition-colors">Home</a></li>
+            <li>/</li>
+            <li><a href="/inventory" className="hover:text-white transition-colors">Inventory</a></li>
+            <li>/</li>
+            <li className="text-white">{car.title}</li>
+          </ol>
+        </nav>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Car Images */}
+          <div className="space-y-4">
+            <CarImageCarousel images={car.images} carTitle={car.title} />
           </div>
+
+          {/* Car Information */}
           <div className="space-y-6">
-              <ContactToBuy car={car} />
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{car.title}</h1>
+              <p className="text-2xl font-bold text-red-500 mb-4">${car.price.toLocaleString()}</p>
+              <p className="text-gray-300 mb-6">{car.location}</p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <div className="text-sm text-gray-400">Year</div>
+                <div className="text-lg font-semibold text-white">{car.year}</div>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <div className="text-sm text-gray-400">Mileage</div>
+                <div className="text-lg font-semibold text-white">{car.mileage.toLocaleString()}</div>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <div className="text-sm text-gray-400">Make</div>
+                <div className="text-lg font-semibold text-white">{car.make}</div>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <div className="text-sm text-gray-400">Model</div>
+                <div className="text-lg font-semibold text-white">{car.model}</div>
+              </div>
+            </div>
+
+            {/* Contact Options */}
+            <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+              <h3 className="text-xl font-semibold text-white mb-4">Contact Us About This Vehicle</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                  <div>
+                    <div className="text-white font-medium">Call +1 424-303-0386</div>
+                    <div className="text-sm text-gray-400">Primary Contact</div>
+                  </div>
+                  <a 
+                    href="tel:+14243030386" 
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Call Now
+                  </a>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                  <div>
+                    <div className="text-white font-medium">Call +1 310-350-7709</div>
+                    <div className="text-sm text-gray-400">Secondary Contact</div>
+                  </div>
+                  <a 
+                    href="tel:+13103507709" 
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Call Now
+                  </a>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                  <div>
+                    <div className="text-white font-medium">Call +1 310-972-0341</div>
+                    <div className="text-sm text-gray-400">Sales Team</div>
+                  </div>
+                  <a 
+                    href="tel:+13109720341" 
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Call Now
+                  </a>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                  <div>
+                    <div className="text-white font-medium">Call +1 310-904-8377</div>
+                    <div className="text-sm text-gray-400">Customer Service</div>
+                  </div>
+                  <a 
+                    href="tel:+13109048377" 
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Call Now
+                  </a>
+                </div>
+              </div>
+              
+              {/* WhatsApp Contact */}
+              <div className="mt-4 p-4 bg-green-900/20 border border-green-700 rounded-lg">
+                <h4 className="text-white font-medium mb-2">WhatsApp Contact</h4>
+                <p className="text-gray-300 text-sm mb-3">Get quick responses via WhatsApp</p>
+                <div className="flex flex-wrap gap-2">
+                  <a 
+                    href={`https://wa.me/14243030386?text=Hi! I'm interested in the ${car.title} (${car.year} ${car.make} ${car.model}). Can you provide more information?`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+                  >
+                    WhatsApp 424
+                  </a>
+                  <a 
+                    href={`https://wa.me/13103507709?text=Hi! I'm interested in the ${car.title} (${car.year} ${car.make} ${car.model}). Can you provide more information?`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+                  >
+                    WhatsApp 310
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Detailed Car Information */}
+        <div className="mt-12">
+          <CarDetails car={car} />
+        </div>
+      </main>
+      
       <Footer />
       <WhatsAppButton />
     </div>

@@ -131,7 +131,7 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
 
       {showForm && (
         <CarForm
-          initialData={editingCar}
+          car={editingCar || undefined}
           onSuccess={() => {
             setShowForm(false)
             setEditingCar(null)

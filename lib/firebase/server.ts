@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
+import { getFirestore, collection, getDocs, query, where, orderBy, limit, doc, getDoc } from "firebase/firestore";
 import type { Car } from "@/lib/types";
 
 // Server-safe Firebase configuration
@@ -254,5 +254,36 @@ export async function getCarDebugInfo(): Promise<any> {
     } catch (e) {
         console.error("❌ Server: Failed to get debug info:", e);
         return { error: e instanceof Error ? e.message : "Unknown error" };
+    }
+}
+
+// Server-side function to get a single car by ID
+export async function getCarById(id: string): Promise<Car | null> {
+    try {
+        console.log(`🔄 Server: Fetching car with ID: ${id}`);
+        
+        if (!db) {
+            console.error("❌ Server: Firestore not initialized");
+            return null;
+        }
+
+        const carRef = doc(db, "cars", id);
+        const carSnapshot = await getDoc(carRef);
+        
+        if (!carSnapshot.exists()) {
+            console.log(`❌ Server: Car with ID ${id} not found`);
+            return null;
+        }
+        
+        const car = { 
+            id: carSnapshot.id, 
+            ...carSnapshot.data() 
+        } as Car;
+        
+        console.log(`✅ Server: Successfully fetched car: ${car.title}`);
+        return car;
+    } catch (e) {
+        console.error(`❌ Server: Failed to fetch car with ID ${id}:`, e);
+        return null;
     }
 }

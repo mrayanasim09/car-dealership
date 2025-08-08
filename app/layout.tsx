@@ -1,25 +1,51 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Providers } from "@/components/providers"; // Import our new wrapper
-import { ErrorBoundary } from "@/components/error-boundary";
-import Script from "next/script";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Providers } from '@/components/providers'
 
-
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: 'swap',
-  preload: true,
-});
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: {
-    template: "%s | AM Tycoons Inc. - Premium Car Dealership",
-    default: "AM Tycoons Inc. - Premium Car Dealership in Los Angeles",
+  title: 'AM Tycoons Inc - Quality Pre-Owned Vehicles',
+  description: 'Find your perfect pre-owned vehicle at AM Tycoons Inc. Quality cars, competitive prices, and exceptional service in Southern California.',
+  keywords: 'used cars, pre-owned vehicles, car dealership, Southern California, AM Tycoons',
+  authors: [{ name: 'AM Tycoons Inc' }],
+  creator: 'AM Tycoons Inc',
+  publisher: 'AM Tycoons Inc',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
-  description: "Discover premium cars at AM Tycoons Inc. Your trusted car dealership in Los Angeles.",
-  metadataBase: new URL("https://amtycoons.com"),
+  metadataBase: new URL('https://am-tycoon-q6z4bba87-mrayanasim09s-projects.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'AM Tycoons Inc - Quality Pre-Owned Vehicles',
+    description: 'Find your perfect pre-owned vehicle at AM Tycoons Inc. Quality cars, competitive prices, and exceptional service in Southern California.',
+    url: 'https://am-tycoon-q6z4bba87-mrayanasim09s-projects.vercel.app',
+    siteName: 'AM Tycoons Inc',
+    images: [
+      {
+        url: '/AMTycons_logo_transparent.png',
+        width: 1200,
+        height: 630,
+        alt: 'AM Tycoons Inc Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AM Tycoons Inc - Quality Pre-Owned Vehicles',
+    description: 'Find your perfect pre-owned vehicle at AM Tycoons Inc. Quality cars, competitive prices, and exceptional service in Southern California.',
+    images: ['/AMTycons_logo_transparent.png'],
+  },
   robots: {
     index: true,
     follow: true,
@@ -34,7 +60,7 @@ export const metadata: Metadata = {
   verification: {
     google: 'your-google-verification-code',
   },
-};
+}
 
 export default function RootLayout({
   children,
@@ -42,89 +68,69 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        {/* SEO Meta Tags */}
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/AMTycons_logo_transparent.png" />
+        <meta name="theme-color" content="#dc2626" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Discover premium cars at AM Tycoons Inc. Your trusted car dealership in Los Angeles." />
-        <meta name="keywords" content="used cars, car dealership, Los Angeles, pre-owned vehicles, AM Tycoons Inc" />
-        <link rel="canonical" href="https://amtycoons.com/" />
-        {/* Open Graph Meta Tags */}
-        <meta property="og:title" content="AM Tycoons Inc. - Premium Car Dealership in Los Angeles" />
-        <meta property="og:description" content="Discover premium cars at AM Tycoons Inc. Your trusted car dealership in Los Angeles." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://amtycoons.com/" />
-        <meta property="og:image" content="https://amtycoons.com/AMTycons_logo_transparent.png" />
-        {/* Twitter Card Meta Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AM Tycoons Inc. - Premium Car Dealership in Los Angeles" />
-        <meta name="twitter:description" content="Discover premium cars at AM Tycoons Inc. Your trusted car dealership in Los Angeles." />
-        <meta name="twitter:image" content="https://amtycoons.com/AMTycons_logo_transparent.png" />
-        {/* Structured Data: Organization */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'Organization',
-          name: 'AM Tycoons Inc.',
-          url: 'https://amtycoons.com/',
-          logo: 'https://amtycoons.com/AMTycons_logo_transparent.png',
-          contactPoint: [{
-            '@type': 'ContactPoint',
-            telephone: '+1-424-303-0386',
-            contactType: 'customer service',
-            areaServed: 'US',
-            availableLanguage: ['English', 'Spanish']
-          }],
-          sameAs: [
-            'https://www.facebook.com/amtycoonsinc',
-            'https://www.instagram.com/amtycoonsinc/'
-          ]
-        }) }} />
-        {/* Structured Data: Breadcrumb (example for homepage) */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'BreadcrumbList',
-          itemListElement: [
-            {
-              '@type': 'ListItem',
-              position: 1,
-              name: 'Home',
-              item: 'https://amtycoons.com/'
-            }
-          ]
-        }) }} />
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-KJR6QF93LL"
-          strategy="afterInteractive"
+        
+        {/* Preconnect to external domains for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+        
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "AutoDealer",
+              "name": "AM Tycoons Inc",
+              "description": "Quality pre-owned vehicles in Southern California",
+              "url": "https://am-tycoon-q6z4bba87-mrayanasim09s-projects.vercel.app",
+              "logo": "https://am-tycoon-q6z4bba87-mrayanasim09s-projects.vercel.app/AMTycons_logo_transparent.png",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "12440 Firestone Blvd, Suite 3025D",
+                "addressLocality": "Norwalk",
+                "addressRegion": "CA",
+                "postalCode": "90650",
+                "addressCountry": "US"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+1-424-303-0386",
+                "contactType": "customer service",
+                "areaServed": "US",
+                "availableLanguage": "English"
+              },
+              "openingHours": "Mo-Su 00:00-23:59",
+              "priceRange": "$$",
+              "sameAs": [
+                "https://www.facebook.com/amtycoonsinc",
+                "https://www.instagram.com/amtycoonsinc"
+              ]
+            })
+          }}
         />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-KJR6QF93LL');
-          `}
-        </Script>
-        {/* Inline critical CSS for above-the-fold content */}
-        <style>{`
-          body { background: #fff; color: #111; margin: 0; font-family: Inter, sans-serif; }
-          .navbar { background: #fff; border-bottom: 1px solid #eee; }
-          .hero { padding: 4rem 0 2rem 0; text-align: center; }
-          .hero h1 { font-size: 2.5rem; font-weight: bold; margin-bottom: 1rem; }
-          .hero p { font-size: 1.25rem; color: #666; margin-bottom: 2rem; }
-          @media (min-width: 768px) {
-            .hero h1 { font-size: 3.5rem; }
-            .hero { padding: 6rem 0 3rem 0; }
-          }
-        `}</style>
       </head>
-      <body className={`${inter.className} antialiased`}>
-        <ErrorBoundary>
-          <Providers>
+      <body className={inter.className}>
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
             {children}
-          </Providers>
-        </ErrorBoundary>
+            <Analytics />
+            <SpeedInsights />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
-  );
+  )
 }

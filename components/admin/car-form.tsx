@@ -1,49 +1,33 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { toast } from "sonner"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { 
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageUpload } from "@/components/image-upload"
 import { addCar, updateCar } from "@/lib/firebase"
 import type { Car } from "@/lib/types"
-
-interface CarFormProps {
-  initialData?: Car | null;
-  onSuccess: () => void;
-  onCancel: () => void;
-}
+import { toast } from "sonner"
+import { Loader2, Plus, X } from "lucide-react"
 
 const formSchema = z.object({
-  title: z.string().min(1, { message: "Title is required." }),
-  make: z.string().min(1, { message: "Make is required." }),
-  model: z.string().min(1, { message: "Model is required." }),
+  title: z.string().min(1, "Title is required"),
+  make: z.string().min(1, "Make is required"),
+  model: z.string().min(1, "Model is required"),
   year: z.number().min(1900).max(new Date().getFullYear() + 1),
   mileage: z.number().min(0),
   price: z.number().min(0),
-  location: z.string().min(1, { message: "Location is required." }),
+  location: z.string().min(1, "Location is required"),
   vin: z.string().optional(),
-  phone: z.string().min(1, { message: "Phone is required." }),
+  phone: z.string().min(1, "Phone is required"),
   whatsapp: z.string().optional(),
   engine: z.string().optional(),
   transmission: z.string().optional(),
@@ -51,628 +35,519 @@ const formSchema = z.object({
   interiorColor: z.string().optional(),
   driveType: z.string().optional(),
   fuelType: z.string().optional(),
-  description: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
   features: z.string().optional(),
   documents: z.string().optional(),
-  approved: z.boolean().default(true), // Default to true for new cars
-  isInventory: z.boolean().default(true), // Default to true for new cars
+  approved: z.boolean().default(true),
+  isInventory: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
 })
 
-type CarFormValues = z.infer<typeof formSchema>
+type FormData = z.infer<typeof formSchema>
 
-export function CarForm({ initialData, onSuccess, onCancel }: CarFormProps) {
-  const [loading, setLoading] = useState(false)
-  const [imageUrls, setImageUrls] = useState<string[]>(initialData?.images || [])
+interface CarFormProps {
+  car?: Car
+  onSuccess?: () => void
+  onCancel?: () => void
+}
 
-  const form = useForm<CarFormValues>({
+export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [imageUrls, setImageUrls] = useState<string[]>(car?.images || [])
+  const [manualUrls, setManualUrls] = useState<string[]>([])
+  const [newManualUrl, setNewManualUrl] = useState("")
+
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      make: "",
-      model: "",
-      year: new Date().getFullYear(),
-      mileage: 0,
-      price: 0,
-      location: "",
-      phone: "",
-      approved: true, // Default to true
-      isInventory: true, // Default to true
-      isFeatured: false,
+      title: car?.title || "",
+      make: car?.make || "",
+      model: car?.model || "",
+      year: car?.year || new Date().getFullYear(),
+      mileage: car?.mileage || 0,
+      price: car?.price || 0,
+      location: car?.location || "",
+      vin: car?.vin || "",
+      phone: car?.contact?.phone || "",
+      whatsapp: car?.contact?.whatsapp || "",
+      engine: car?.engine || "",
+      transmission: car?.transmission || "",
+      exteriorColor: car?.exteriorColor || "",
+      interiorColor: car?.interiorColor || "",
+      driveType: car?.driveType || "",
+      fuelType: car?.fuelType || "",
+      description: car?.description || "",
+      features: car?.features?.join("\n") || "",
+      documents: car?.documents?.map(d => `${d.name},${d.url}`).join("\n") || "",
+      approved: car?.approved ?? true,
+      isInventory: car?.isInventory ?? true,
+      isFeatured: car?.isFeatured ?? false,
     },
   })
 
-  useEffect(() => {
-    if (initialData) {
-      form.reset({
-        ...initialData,
-        year: initialData.year || new Date().getFullYear(),
-        mileage: initialData.mileage || 0,
-        price: initialData.price || 0,
-        // features and documents need to be converted from array to string for textarea
-        features: Array.isArray(initialData.features) 
-          ? initialData.features.join("\n") 
-          : initialData.features || "",
-        documents: Array.isArray(initialData.documents) 
-          ? initialData.documents.map(doc => `${doc.name},${doc.url}`).join("\n") 
-          : initialData.documents || "",
-      })
-      setImageUrls(initialData.images || [])
-    }
-  }, [initialData, form])
-
-  const onSubmit = async (values: CarFormValues) => {
-    console.log("Form submitted with values:", values)
-    setLoading(true)
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true)
     try {
+      // Combine uploaded images with manual URLs
+      const allImages = [...imageUrls, ...manualUrls].filter(Boolean)
+      
+      // Parse features
+      const features = data.features
+        ? data.features.split("\n").filter(f => f.trim())
+        : []
+
+      // Parse documents
+      const documents = data.documents
+        ? data.documents.split("\n")
+            .filter(d => d.trim())
+            .map(d => {
+              const [name, url] = d.split(",").map(s => s.trim())
+              return { name, url }
+            })
+        : []
+
       const carData = {
-        title: values.title,
-        make: values.make,
-        model: values.model,
-        year: values.year,
-        mileage: values.mileage,
-        price: values.price,
-        location: values.location,
-        vin: values.vin || "",
-        engine: values.engine || "",
-        transmission: values.transmission || "",
-        exteriorColor: values.exteriorColor || "",
-        interiorColor: values.interiorColor || "",
-        driveType: values.driveType || "",
-        fuelType: values.fuelType || "",
-        description: values.description || "",
-        images: imageUrls, // Use the image URLs from Cloudinary
+        ...data,
+        images: allImages,
+        features,
+        documents,
         contact: {
-          phone: values.phone || "",
-          whatsapp: values.whatsapp || "",
+          phone: data.phone,
+          whatsapp: data.whatsapp || data.phone,
         },
-        rating: 0,
-        reviews: [],
-        approved: values.approved,
-        listedAt: new Date(),
-        isFeatured: values.isFeatured,
-        isInventory: values.isInventory,
-        features: values.features ? values.features.split("\n").map(f => f.trim()).filter(f => f) : [],
-        documents: values.documents ? values.documents.split("\n").map(d => {
-          const parts = d.split(",");
-          return { name: parts[0]?.trim() || "", url: parts[1]?.trim() || "" };
-        }).filter(d => d.name) : [],
+        rating: car?.rating || 0,
+        reviews: car?.reviews || [],
+        listedAt: car?.listedAt || new Date(),
+        createdAt: car?.createdAt || new Date(),
       }
 
-      console.log("Processing clean car data:", carData)
-
-      if (initialData?.id) {
-        // Update existing car
-        console.log("Updating car with ID:", initialData.id)
-        await updateCar(initialData.id, carData)
+      if (car) {
+        await updateCar(car.id, carData)
         toast.success("Car updated successfully!")
       } else {
-        // Add new car
-        console.log("Adding new car")
         await addCar(carData)
         toast.success("Car added successfully!")
       }
-      onSuccess()
+
+      onSuccess?.()
     } catch (error) {
       console.error("Error saving car:", error)
       toast.error("Failed to save car. Please try again.")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
-  const handleImagesUploaded = (urls: string[]) => {
-    setImageUrls(urls)
-    console.log("Images updated:", urls)
+  const addManualUrl = () => {
+    if (newManualUrl.trim() && !manualUrls.includes(newManualUrl.trim())) {
+      setManualUrls([...manualUrls, newManualUrl.trim()])
+      setNewManualUrl("")
+    }
   }
 
-  const handleImageRemove = (imageUrl: string) => {
-    // For now, just remove from local state
-    // In the future, you might want to delete from Cloudinary as well
-    setImageUrls(prev => prev.filter(url => url !== imageUrl))
-    console.log("Image removed:", imageUrl)
+  const removeManualUrl = (url: string) => {
+    setManualUrls(manualUrls.filter(u => u !== url))
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Basic Information */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Basic Information</h3>
-          
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="title">Title</FormLabel>
-                <FormControl>
-                  <Input 
-                    id="title"
-                    placeholder="2023 Honda Civic Sport" 
-                    {...field} 
-                    className="text-gray-900 dark:text-gray-100"
-                    autoComplete="off"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="make"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="make">Make</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="make"
-                      placeholder="Honda" 
-                      {...field} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="model"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="model">Model</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="model"
-                      placeholder="Civic" 
-                      {...field} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="year">Year</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="year"
-                      type="number" 
-                      placeholder="2023" 
-                      {...field} 
-                      onChange={e => field.onChange(parseInt(e.target.value) || 0)} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="mileage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="mileage">Mileage</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="mileage"
-                      type="number" 
-                      placeholder="15000" 
-                      {...field} 
-                      onChange={e => field.onChange(parseInt(e.target.value) || 0)} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="price">Price ($)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="price"
-                      type="number" 
-                      placeholder="25000" 
-                      {...field} 
-                      onChange={e => field.onChange(parseInt(e.target.value) || 0)} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="location">Location</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="location"
-                      placeholder="Los Angeles, CA" 
-                      {...field} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Contact Information */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Contact Information</h3>
-          
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      {/* Basic Information */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Basic Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="vin"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="vin">VIN (Optional)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="vin"
-                      placeholder="1G1AP5G29J4000001" 
-                      {...field} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div>
+              <Label htmlFor="title" className="text-gray-300">Title</Label>
+              <Input
+                id="title"
+                {...form.register("title")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="e.g., 2023 Honda Civic Sport"
+              />
+              {form.formState.errors.title && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.title.message}</p>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="phone">Phone</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="phone"
-                      placeholder="+1 (555) 123-4567" 
-                      {...field} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="tel"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            </div>
+            <div>
+              <Label htmlFor="location" className="text-gray-300">Location</Label>
+              <Input
+                id="location"
+                {...form.register("location")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="e.g., Los Angeles, CA"
+              />
+              {form.formState.errors.location && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.location.message}</p>
               )}
-            />
+            </div>
           </div>
           
-          <FormField
-            control={form.control}
-            name="whatsapp"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="whatsapp">WhatsApp (Optional)</FormLabel>
-                <FormControl>
-                  <Input 
-                    id="whatsapp"
-                    placeholder="+1 (555) 123-4567" 
-                    {...field} 
-                    className="text-gray-900 dark:text-gray-100"
-                    autoComplete="tel"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Technical Specifications */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Technical Specifications</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="engine"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="engine">Engine (Optional)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      id="engine"
-                      placeholder="2.0L I4 Turbo" 
-                      {...field} 
-                      className="text-gray-900 dark:text-gray-100"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="make" className="text-gray-300">Make</Label>
+              <Input
+                id="make"
+                {...form.register("make")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="e.g., Honda"
+              />
+              {form.formState.errors.make && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.make.message}</p>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="transmission"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Transmission (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select transmission" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Automatic">Automatic</SelectItem>
-                      <SelectItem value="Manual">Manual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
+            </div>
+            <div>
+              <Label htmlFor="model" className="text-gray-300">Model</Label>
+              <Input
+                id="model"
+                {...form.register("model")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="e.g., Civic"
+              />
+              {form.formState.errors.model && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.model.message}</p>
               )}
-            />
+            </div>
+            <div>
+              <Label htmlFor="year" className="text-gray-300">Year</Label>
+              <Input
+                id="year"
+                type="number"
+                {...form.register("year", { valueAsNumber: true })}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="2023"
+              />
+              {form.formState.errors.year && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.year.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="mileage" className="text-gray-300">Mileage</Label>
+              <Input
+                id="mileage"
+                type="number"
+                {...form.register("mileage", { valueAsNumber: true })}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="50000"
+              />
+              {form.formState.errors.mileage && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.mileage.message}</p>
+              )}
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="exteriorColor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Exterior Color (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Black" {...field} className="text-gray-900 dark:text-gray-100" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div>
+              <Label htmlFor="price" className="text-gray-300">Price ($)</Label>
+              <Input
+                id="price"
+                type="number"
+                {...form.register("price", { valueAsNumber: true })}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="25000"
+              />
+              {form.formState.errors.price && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.price.message}</p>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="interiorColor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Interior Color (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Black" {...field} className="text-gray-900 dark:text-gray-100" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            </div>
+            <div>
+              <Label htmlFor="vin" className="text-gray-300">VIN (Optional)</Label>
+              <Input
+                id="vin"
+                {...form.register("vin")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="1G1AP5G29J4000001"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Contact Information */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Contact Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone" className="text-gray-300">Phone</Label>
+              <Input
+                id="phone"
+                {...form.register("phone")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="+1 (555) 123-4567"
+              />
+              {form.formState.errors.phone && (
+                <p className="text-red-400 text-sm mt-1">{form.formState.errors.phone.message}</p>
               )}
-            />
+            </div>
+            <div>
+              <Label htmlFor="whatsapp" className="text-gray-300">WhatsApp (Optional)</Label>
+              <Input
+                id="whatsapp"
+                {...form.register("whatsapp")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="+1 (555) 123-4567"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Technical Specifications */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Technical Specifications</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="engine" className="text-gray-300">Engine (Optional)</Label>
+              <Input
+                id="engine"
+                {...form.register("engine")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="2.0L I4 Turbo"
+              />
+            </div>
+            <div>
+              <Label htmlFor="transmission" className="text-gray-300">Transmission (Optional)</Label>
+              <Select onValueChange={(value) => form.setValue("transmission", value)} defaultValue={form.getValues("transmission")}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue placeholder="Select transmission" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  <SelectItem value="Automatic">Automatic</SelectItem>
+                  <SelectItem value="Manual">Manual</SelectItem>
+                  <SelectItem value="CVT">CVT</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="driveType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Drive Type (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select drive type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="FWD">FWD</SelectItem>
-                      <SelectItem value="RWD">RWD</SelectItem>
-                      <SelectItem value="AWD">AWD</SelectItem>
-                      <SelectItem value="4WD">4WD</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <div>
+              <Label htmlFor="exteriorColor" className="text-gray-300">Exterior Color (Optional)</Label>
+              <Input
+                id="exteriorColor"
+                {...form.register("exteriorColor")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="Black"
+              />
+            </div>
+            <div>
+              <Label htmlFor="interiorColor" className="text-gray-300">Interior Color (Optional)</Label>
+              <Input
+                id="interiorColor"
+                {...form.register("interiorColor")}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="Black"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="driveType" className="text-gray-300">Drive Type (Optional)</Label>
+              <Select onValueChange={(value) => form.setValue("driveType", value)} defaultValue={form.getValues("driveType")}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue placeholder="Select drive type" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  <SelectItem value="FWD">Front-Wheel Drive</SelectItem>
+                  <SelectItem value="RWD">Rear-Wheel Drive</SelectItem>
+                  <SelectItem value="AWD">All-Wheel Drive</SelectItem>
+                  <SelectItem value="4WD">Four-Wheel Drive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="fuelType" className="text-gray-300">Fuel Type (Optional)</Label>
+              <Select onValueChange={(value) => form.setValue("fuelType", value)} defaultValue={form.getValues("fuelType")}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue placeholder="Select fuel type" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  <SelectItem value="Gasoline">Gasoline</SelectItem>
+                  <SelectItem value="Diesel">Diesel</SelectItem>
+                  <SelectItem value="Hybrid">Hybrid</SelectItem>
+                  <SelectItem value="Electric">Electric</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Description & Features */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Description & Features</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="description" className="text-gray-300">Description</Label>
+            <Textarea
+              id="description"
+              {...form.register("description")}
+              className="bg-gray-700 border-gray-600 text-white"
+              placeholder="Enter detailed car description..."
+              rows={4}
             />
-            <FormField
-              control={form.control}
-              name="fuelType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fuel Type (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select fuel type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Gasoline">Gasoline</SelectItem>
-                      <SelectItem value="Diesel">Diesel</SelectItem>
-                      <SelectItem value="Electric">Electric</SelectItem>
-                      <SelectItem value="Hybrid">Hybrid</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            {form.formState.errors.description && (
+              <p className="text-red-400 text-sm mt-1">{form.formState.errors.description.message}</p>
+            )}
+          </div>
+          
+          <div>
+            <Label htmlFor="features" className="text-gray-300">Features (Optional)</Label>
+            <Textarea
+              id="features"
+              {...form.register("features")}
+              className="bg-gray-700 border-gray-600 text-white"
+              placeholder="Enter each feature on a new line. Example:&#10;Bluetooth Connectivity&#10;Backup Camera&#10;Heated Seats&#10;Sunroof"
+              rows={4}
             />
           </div>
-        </div>
+          
+          <div>
+            <Label htmlFor="documents" className="text-gray-300">Documents (Optional)</Label>
+            <Textarea
+              id="documents"
+              {...form.register("documents")}
+              className="bg-gray-700 border-gray-600 text-white"
+              placeholder="Enter each document as `name,url` on a new line. Example:&#10;Carfax Report,https://example.com/carfax.pdf&#10;Service History,https://example.com/service.pdf"
+              rows={3}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Description and Features */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Description & Features</h3>
-          
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Enter detailed car description..." 
-                    {...field} 
-                    rows={4}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      {/* Car Images */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Car Images</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ImageUpload
+            onImagesUploaded={setImageUrls}
+            existingImages={car?.images || []}
           />
           
-          <FormField
-            control={form.control}
-            name="features"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Features (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter each feature on a new line. Example:&#10;Bluetooth Connectivity&#10;Backup Camera&#10;Heated Seats&#10;Sunroof" 
-                    {...field}
-                    value={field.value || ""}
-                    rows={4}
-                  />
-                </FormControl>
-                <FormDescription>Enter each feature on a new line.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="documents"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Documents (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter each document as `name,url` on a new line. Example:&#10;Carfax Report,https://example.com/carfax.pdf&#10;Service History,https://example.com/service.pdf"
-                    {...field}
-                    value={field.value || ""}
-                    rows={4}
-                  />
-                </FormControl>
-                <FormDescription>Enter each document as `name,url` on a new line.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Image Upload */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Car Images</h3>
-          <ImageUpload 
-            onImagesUploaded={handleImagesUploaded}
-            existingImages={imageUrls}
-            onImageRemove={handleImageRemove}
-            maxImages={10}
-          />
-        </div>
-
-        {/* Display Settings */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Display Settings</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="approved"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Approved</FormLabel>
-                    <FormDescription>Mark car as approved for public display.</FormDescription>
+          {/* Manual URL Input */}
+          <div className="space-y-3">
+            <Label className="text-gray-300">Add Image URLs (Optional)</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newManualUrl}
+                onChange={(e) => setNewManualUrl(e.target.value)}
+                placeholder="https://res.cloudinary.com/your-cloud/image/upload/..."
+                className="bg-gray-700 border-gray-600 text-white flex-1"
+              />
+              <Button
+                type="button"
+                onClick={addManualUrl}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {/* Display manual URLs */}
+            {manualUrls.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-gray-300">Manual URLs:</Label>
+                {manualUrls.map((url, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-700 rounded">
+                    <span className="text-gray-300 text-sm flex-1 truncate">{url}</span>
+                    <Button
+                      type="button"
+                      onClick={() => removeManualUrl(url)}
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="isInventory"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Show in Inventory</FormLabel>
-                    <FormDescription>Display this car in the main inventory list.</FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="isFeatured"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Show in Featured Vehicles</FormLabel>
-                    <FormDescription>Highlight this car on the homepage or featured sections.</FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Form Actions */}
-        <div className="flex justify-end space-x-4 pt-6 border-t">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel} 
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={loading}
-          >
-            {loading ? "Saving..." : initialData ? "Update Car" : "Add Car"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      {/* Display Settings */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white">Display Settings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="approved"
+              checked={form.watch("approved")}
+              onCheckedChange={(checked) => form.setValue("approved", checked as boolean)}
+            />
+            <Label htmlFor="approved" className="text-gray-300">
+              Approved
+            </Label>
+            <Badge variant="outline" className="text-gray-400 border-gray-600">
+              Mark car as approved for public display.
+            </Badge>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isInventory"
+              checked={form.watch("isInventory")}
+              onCheckedChange={(checked) => form.setValue("isInventory", checked as boolean)}
+            />
+            <Label htmlFor="isInventory" className="text-gray-300">
+              Show in Inventory
+            </Label>
+            <Badge variant="outline" className="text-gray-400 border-gray-600">
+              Display this car in the main inventory list.
+            </Badge>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isFeatured"
+              checked={form.watch("isFeatured")}
+              onCheckedChange={(checked) => form.setValue("isFeatured", checked as boolean)}
+            />
+            <Label htmlFor="isFeatured" className="text-gray-300">
+              Show in Featured Vehicles
+            </Label>
+            <Badge variant="outline" className="text-gray-400 border-gray-600">
+              Highlight this car on the homepage or featured sections.
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Form Actions */}
+      <div className="flex justify-end space-x-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-red-600 hover:bg-red-700 text-white"
+        >
+          {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {car ? "Update Car" : "Add Car"}
+        </Button>
+      </div>
+    </form>
   )
 }
