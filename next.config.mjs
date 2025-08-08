@@ -2,10 +2,72 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig = {
-  // Security configuration
-  async headers() {
-    const isDevelopment = process.env.NODE_ENV === 'development';
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-hook-form', 'zod'],
+    optimizeCss: true,
+    optimizeServerReact: true,
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+  
+  // Image optimization
+  images: {
+    domains: ['res.cloudinary.com', 'firebasestorage.googleapis.com'],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 31536000, // 1 year
+  },
+  
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Security: prevent access to sensitive files
+    config.module.rules.push({
+      test: /\.(env|config|secret)/,
+      use: 'ignore-loader',
+    })
     
+    // Performance: minimize bundle in production
+    if (!dev) {
+      config.optimization.minimize = true
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 10,
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            enforce: true,
+            priority: 5,
+          },
+          // Separate large libraries
+          firebase: {
+            test: /[\\/]node_modules[\\/](firebase|@firebase)[\\/]/,
+            name: 'firebase',
+            chunks: 'all',
+            priority: 20,
+          },
+          radix: {
+            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+            name: 'radix',
+            chunks: 'all',
+            priority: 15,
+          },
+        },
+      }
+    }
+    
+    return config
+  },
+  
+  // Headers for performance
+  async headers() {
     return [
       {
         source: '/(.*)',
@@ -32,63 +94,11 @@ const nextConfig = {
           },
           {
             key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload',
+            value: 'max-age=31536000; includeSubDomains',
           },
           {
             key: 'Content-Security-Policy',
-            value: isDevelopment 
-              ? [
-                  "default-src 'self'",
-                  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://apis.google.com",
-                  "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
-                  "font-src 'self' https://fonts.gstatic.com",
-                  "img-src 'self' data: https: blob:",
-                  "connect-src 'self' https://*.googleapis.com https://www.google-analytics.com",
-                  "frame-src 'self' https://www.google.com https://maps.google.com https://am-tycoon.firebaseapp.com",
-                  "object-src 'none'",
-                  "base-uri 'self'",
-                  "form-action 'self'"
-                ].join('; ')
-              : [
-                  "default-src 'self'",
-                  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://apis.google.com",
-                  "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
-                  "font-src 'self' https://fonts.gstatic.com",
-                  "img-src 'self' data: https: blob:",
-                  "connect-src 'self' https://*.googleapis.com https://www.google-analytics.com",
-                  "frame-src 'self' https://www.google.com https://maps.google.com https://am-tycoon.firebaseapp.com",
-                  "object-src 'none'",
-                  "base-uri 'self'",
-                  "form-action 'self'"
-                ].join('; '),
-          },
-        ],
-      },
-      // Additional headers for admin routes
-      {
-        source: '/admin/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          },
-          {
-            key: 'Pragma',
-            value: 'no-cache',
-          },
-          {
-            key: 'Expires',
-            value: '0',
-          },
-        ],
-      },
-      // Performance headers for API routes
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=300, s-maxage=300',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://res.cloudinary.com; frame-src 'self' https://vercel.live;",
           },
         ],
       },
@@ -112,63 +122,60 @@ const nextConfig = {
           },
         ],
       },
+      // Performance headers for fonts
+      {
+        source: '/fonts/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ]
   },
+  
+  // Redirects
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
+  
+  // Rewrites
+  async rewrites() {
+    return [
+      {
+        source: '/api/health',
+        destination: '/api/health-check',
+      },
+    ]
+  },
+  
+  // Compiler options
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
+  // Output configuration
+  output: 'standalone',
+  
+  // Power by header
+  poweredByHeader: false,
 
   // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // Enhanced image optimization
-  images: {
-    domains: ['res.cloudinary.com', 'firebasestorage.googleapis.com'],
-    formats: ['image/webp', 'image/avif'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-  },
-
-  // Experimental features for performance
-  experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-hook-form', 'zod'],
-  },
-
-  // Redirects for security
-  async redirects() {
-    return [
-      {
-        source: '/admin',
-        destination: '/admin/dashboard',
-        permanent: false,
-      },
-    ]
-  },
-
-  // Rewrites for API protection
-  async rewrites() {
-    return [
-      {
-        source: '/api/admin/:path*',
-        destination: '/api/admin/:path*',
-      },
-    ]
-  },
-
-  // Enhanced compiler options for performance
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-    reactRemoveProperties: process.env.NODE_ENV === 'production',
-  },
-
   // Performance optimizations
-  poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
   trailingSlash: false,
-  output: 'standalone',
   swcMinify: true,
 
   // Temporarily disable ESLint during build
