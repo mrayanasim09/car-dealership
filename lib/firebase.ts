@@ -53,6 +53,12 @@ const initializationStatus = {
 }
 
 export const initializeFirebase = async () => {
+  // Only initialize on client side
+  if (typeof window === 'undefined') {
+    console.log("🔥 Firebase initialization skipped on server side")
+    return
+  }
+
   if (isInitialized) return
 
   try {

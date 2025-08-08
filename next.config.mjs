@@ -1,13 +1,17 @@
 /** @type {import('next').NextConfig} */
-import withBundleAnalyzer from '@next/bundle-analyzer';
+import webpack from 'webpack';
 
 const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-hook-form', 'zod'],
-    optimizeCss: true,
+    optimizeCss: false,
     optimizeServerReact: true,
-    serverComponentsExternalPackages: ['@prisma/client'],
+    serverComponentsExternalPackages: ['@prisma/client', '@vercel/analytics', '@vercel/speed-insights'],
+    // Fix for SSR issues with client-side libraries
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
   
   // Image optimization
@@ -26,42 +30,6 @@ const nextConfig = {
       test: /\.(env|config|secret)/,
       use: 'ignore-loader',
     })
-    
-    // Performance: minimize bundle in production
-    if (!dev) {
-      config.optimization.minimize = true
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 10,
-          },
-          common: {
-            name: 'common',
-            minChunks: 2,
-            chunks: 'all',
-            enforce: true,
-            priority: 5,
-          },
-          // Separate large libraries
-          firebase: {
-            test: /[\\/]node_modules[\\/](firebase|@firebase)[\\/]/,
-            name: 'firebase',
-            chunks: 'all',
-            priority: 20,
-          },
-          radix: {
-            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-            name: 'radix',
-            chunks: 'all',
-            priority: 15,
-          },
-        },
-      }
-    }
     
     return config
   },
@@ -161,8 +129,7 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   
-  // Output configuration
-  output: 'standalone',
+  // Output configuration - removed standalone to fix build issues
   
   // Power by header
   poweredByHeader: false,
