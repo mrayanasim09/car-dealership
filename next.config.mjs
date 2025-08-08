@@ -1,5 +1,4 @@
 /** @type {import('next').NextConfig} */
-import webpack from 'webpack';
 
 const nextConfig = {
   // Performance optimizations
@@ -23,16 +22,7 @@ const nextConfig = {
     minimumCacheTTL: 31536000, // 1 year
   },
   
-  // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
-    // Security: prevent access to sensitive files
-    config.module.rules.push({
-      test: /\.(env|config|secret)/,
-      use: 'ignore-loader',
-    })
-    
-    return config
-  },
+
   
   // Headers for performance
   async headers() {
