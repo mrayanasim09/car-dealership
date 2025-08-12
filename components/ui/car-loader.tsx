@@ -8,7 +8,7 @@ export function CarLoader({ size = 96, className }: { size?: number; className?:
     <div className={cn("flex flex-col items-center justify-center py-8", className)} role="status" aria-label="Loading">
       <div className="relative" style={{ width: size, height: size * 0.5 }}>
         <Image
-          src="/optimized/am-tycoons-logo.png"
+          src="/optimized/am-tycoons-logo.webp"
           alt="AM Tycoons Inc. car logo"
           fill
           className="object-contain animate-car-drive drop-shadow-md"

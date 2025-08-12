@@ -83,7 +83,7 @@ export function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Image
-            src="/optimized/am-tycoons-logo.png"
+            src="/optimized/am-tycoons-logo.webp"
             alt="AM Tycoons INC Logo"
             width={150}
             height={60}

@@ -39,7 +39,7 @@ export function Preloader() {
         {/* Logo - Clean and simple */}
         <div className="mb-8">
           <Image
-            src="/optimized/am-tycoons-logo.png"
+            src="/optimized/am-tycoons-logo.webp"
             alt="AM Tycoons Inc."
             width={200}
             height={80}

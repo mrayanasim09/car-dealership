@@ -23,7 +23,7 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-3 group" aria-label="AM Tycoons Inc. Home">
               <div className="relative h-10 w-16">
-                <Image src="/optimized/am-tycoons-logo.png" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="64px" />
+                <Image src="/optimized/am-tycoons-logo.webp" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="64px" />
               </div>
               <div>
                 <div className="text-lg font-bold group-hover:text-primary transition-colors"><BrandName /></div>

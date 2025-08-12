@@ -48,7 +48,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Logo Image - Same as navbar for consistency */}
               <div className="relative w-12 h-8">
                 <Image
-                  src="/optimized/am-tycoons-logo.png"
+                  src="/optimized/am-tycoons-logo.webp"
                   alt="AM Tycoons Inc. Logo"
                   fill
                   className="object-contain"
@@ -98,7 +98,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Logo Image - Same as navbar for consistency */}
               <div className="relative w-16 h-10">
                 <Image
-                  src="/optimized/am-tycoons-logo.png"
+                  src="/optimized/am-tycoons-logo.webp"
                   alt="AM Tycoons Inc. Logo"
                   fill
                   className="object-contain"
