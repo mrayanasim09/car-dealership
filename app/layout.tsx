@@ -98,15 +98,15 @@ export default function RootLayout({
       })();
     `}</Script>
       <head>
-        {/* Google tag (gtag.js) */}
+        {/* Google tag (gtag.js) - load lazily to keep main thread free */}
         <Script
           id="gtag-src"
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-Y6M86V6MKQ"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           nonce={nonce}
         />
-        <Script id="gtag-init" strategy="afterInteractive" nonce={nonce}>
+        <Script id="gtag-init" strategy="lazyOnload" nonce={nonce}>
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -119,8 +119,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         
-        {/* Preload critical resources */}
-        <link rel="preload" href="/optimized/am-tycoons-logo.png" as="image" type="image/png" />
+        {/* Preload critical resources (logo preload removed to avoid large PNG on critical path) */}
         <link rel="preload" href="/favicon.ico" as="image" type="image/x-icon" />
         
         {/* Sitemap */}

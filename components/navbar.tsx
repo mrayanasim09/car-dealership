@@ -37,7 +37,7 @@ export function Navbar() {
           <div className="flex items-center gap-3 flex-1">
             <Link href="/" className="flex items-center gap-3 group" aria-label="AM Tycoons Inc. Home" onClick={closeMenu}>
               <div className="relative h-14 w-24 md:h-16 md:w-28 transition-transform duration-200 group-hover:scale-[1.02]">
-                <Image src="/optimized/am-tycoons-logo.png" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="(max-width: 768px) 120px, 160px" priority />
+                <Image src="/optimized/am-tycoons-logo.png" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="(max-width: 768px) 120px, 160px" priority={false} />
               </div>
               {/* Brand text - both mobile and desktop clickable */}
               <div className="leading-tight">
