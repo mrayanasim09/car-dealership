@@ -44,19 +44,15 @@ export const metadata: Metadata = {
     description: 'Discover premium pre-owned vehicles at AM Tycoons Inc. Quality cars, competitive pricing, exceptional service, and easy financing.',
     siteName: 'AM Tycoons Inc.',
     images: [
-      {
-        url: '/optimized/am-tycoons-logo.png?v=4',
-        width: 1200,
-        height: 630,
-        alt: 'AM Tycoons Inc. Logo',
-      },
+      { url: 'https://amtycoonsinc.com/optimized/am-tycoons-logo.png?v=4', width: 1200, height: 630, alt: 'AM Tycoons Inc. Logo' },
+      { url: 'https://amtycoonsinc.com/optimized/am-tycoons-logo.webp?v=1', width: 1200, height: 630, alt: 'AM Tycoons Inc. Logo (WebP)' },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'AM Tycoons Inc. - Premium Pre-Owned Vehicles',
     description: 'Discover premium pre-owned vehicles at AM Tycoons Inc. Quality cars, competitive pricing, exceptional service, and easy financing.',
-    images: ['/optimized/am-tycoons-logo.png?v=4'],
+    images: ['https://amtycoonsinc.com/optimized/am-tycoons-logo.png?v=4'],
   },
   robots: {
     index: true,

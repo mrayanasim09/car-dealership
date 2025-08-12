@@ -38,14 +38,14 @@ export async function generateMetadata({ params }: CarPageProps): Promise<Metada
     openGraph: {
       title: `${car.title} - AM Tycoons Inc`,
       description: `${car.year} ${car.make} ${car.model} for sale at AM Tycoons Inc. ${car.mileage.toLocaleString()} miles, located in ${car.location}.`,
-      images: car.images && car.images.length > 0 ? car.images : ['/optimized/am-tycoons-logo.png?v=4'],
+      images: car.images && car.images.length > 0 ? car.images : ['https://amtycoonsinc.com/optimized/am-tycoons-logo.png?v=4'],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: `${car.title} - AM Tycoons Inc`,
       description: `${car.year} ${car.make} ${car.model} for sale at AM Tycoons Inc.`,
-      images: car.images && car.images.length > 0 ? [car.images[0]] : ['/optimized/am-tycoons-logo.png?v=4'],
+      images: car.images && car.images.length > 0 ? [car.images[0]] : ['https://amtycoonsinc.com/optimized/am-tycoons-logo.png?v=4'],
     },
   }
 }
