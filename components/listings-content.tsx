@@ -1,36 +1,56 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { CarCard } from "@/components/car-card"
 import { FilterPanel } from "@/components/filter-panel"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
-import { CarComparison } from "@/components/car-comparison"
-import { LoadingSpinner } from "@/components/loading-spinner"
+// CSS animation utilities are used to avoid client boundary issues
+
+import { CarLoader } from "@/components/ui/car-loader"
 import { FloatingCompareButton } from "@/components/floating-compare-button"
 import type { Car } from "@/lib/types"
 
-interface ListingsContentProps {
-    initialCars: Car[];
+export type ListingsFilters = {
+  search: string
+  make: string
+  minPrice: number | null
+  maxPrice: number | null
+  minYear: number | null
+  maxYear: number | null
+  maxMileage: number | null
 }
 
-export function ListingsContent({ initialCars }: ListingsContentProps) {
+interface ListingsContentProps {
+  initialCars: Car[]
+  filters?: ListingsFilters
+  onFiltersChange?: (filters: ListingsFilters) => void
+}
+
+export function ListingsContent({ initialCars, filters: controlledFilters, onFiltersChange }: ListingsContentProps) {
   const [cars] = useState<Car[]>(initialCars)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filters, setFilters] = useState({
+  const [internalFilters, setInternalFilters] = useState<ListingsFilters>({
     search: "",
     make: "",
-    minPrice: null as number | null,
-    maxPrice: null as number | null,
-    minYear: null as number | null,
-    maxYear: null as number | null,
-    maxMileage: null as number | null,
+    minPrice: null,
+    maxPrice: null,
+    minYear: null,
+    maxYear: null,
+    maxMileage: null,
   })
+  const activeFilters = controlledFilters ?? internalFilters
+
+  // Sync internal state when controlled filters provided
+  useEffect(() => {
+    if (controlledFilters) setInternalFilters(controlledFilters)
+  }, [controlledFilters])
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   
   const carsPerPage = 12
+  const usingExternalFilters = Boolean(onFiltersChange)
 
   // Memoized filtered cars for better performance
   const filteredCars = useMemo(() => {
@@ -40,19 +60,19 @@ export function ListingsContent({ initialCars }: ListingsContentProps) {
         car.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
         car.model.toLowerCase().includes(searchTerm.toLowerCase())
       
-      const matchesMake = filters.make === "" || car.make === filters.make
+      const matchesMake = activeFilters.make === "" || car.make === activeFilters.make
       
-      const matchesPrice = (filters.minPrice === null || car.price >= filters.minPrice) &&
-                          (filters.maxPrice === null || car.price <= filters.maxPrice)
+      const matchesPrice = (activeFilters.minPrice === null || car.price >= activeFilters.minPrice) &&
+                          (activeFilters.maxPrice === null || car.price <= activeFilters.maxPrice)
       
-      const matchesYear = (filters.minYear === null || car.year >= filters.minYear) &&
-                         (filters.maxYear === null || car.year <= filters.maxYear)
+      const matchesYear = (activeFilters.minYear === null || car.year >= activeFilters.minYear) &&
+                         (activeFilters.maxYear === null || car.year <= activeFilters.maxYear)
       
-      const matchesMileage = filters.maxMileage === null || car.mileage <= filters.maxMileage
+      const matchesMileage = activeFilters.maxMileage === null || car.mileage <= activeFilters.maxMileage
       
       return matchesSearch && matchesMake && matchesPrice && matchesYear && matchesMileage
     })
-  }, [cars, searchTerm, filters])
+  }, [cars, searchTerm, activeFilters])
 
   // Pagination
   const totalPages = Math.ceil(filteredCars.length / carsPerPage)
@@ -60,21 +80,13 @@ export function ListingsContent({ initialCars }: ListingsContentProps) {
   const endIndex = startIndex + carsPerPage
   const currentCars = filteredCars.slice(startIndex, endIndex)
 
-  const handleFilter = (newFilters: {
-    search: string
-    make: string
-    minPrice: number | null
-    maxPrice: number | null
-    minYear: number | null
-    maxYear: number | null
-    maxMileage: number | null
-  }) => {
+  const handleFilter = useCallback((newFilters: ListingsFilters) => {
     setIsLoading(true)
     setCurrentPage(1)
-    setFilters(newFilters)
-    // Simulate loading for better UX
+    if (onFiltersChange) onFiltersChange(newFilters)
+    else setInternalFilters(newFilters)
     setTimeout(() => setIsLoading(false), 300)
-  }
+  }, [onFiltersChange])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -82,11 +94,11 @@ export function ListingsContent({ initialCars }: ListingsContentProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Search Section */}
-      <div className="mb-6">
+      <div className="mb-4 md:mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             type="text"
             placeholder="Search cars by make, model, or title..."
@@ -97,41 +109,42 @@ export function ListingsContent({ initialCars }: ListingsContentProps) {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Filter Panel */}
-        <div className="lg:w-1/4">
-          <FilterPanel onFilter={handleFilter} />
-        </div>
+      <div className={usingExternalFilters ? '' : "flex flex-col lg:flex-row gap-6 md:gap-8"}>
+        {/* Filter Panel (internal) */}
+        {!usingExternalFilters && (
+          <div className="lg:w-1/4">
+            <FilterPanel onFilter={handleFilter} />
+          </div>
+        )}
 
         {/* Cars Grid */}
-        <div className="lg:w-3/4">
+        <div className={usingExternalFilters ? '' : "lg:w-3/4"}>
           {isLoading ? (
-            <LoadingSpinner />
+            <CarLoader />
           ) : (
             <>
               {/* Results Count */}
-              <div className="mb-6">
-                <p className="text-gray-600 dark:text-gray-400">
+              <div className="mb-4 md:mb-6">
+                <p className="text-muted-foreground">
                   Showing {startIndex + 1}-{Math.min(endIndex, filteredCars.length)} of {filteredCars.length} vehicles
                 </p>
               </div>
 
               {/* Cars Grid */}
               {currentCars.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Car listings">
-                  {currentCars.map((car) => (
-                    <div key={car.id} role="listitem">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 content-visibility-auto" role="list" aria-label="Car listings">
+                  {currentCars.map((car, idx) => (
+                    <div key={car.id} role="listitem" className="animate-slide-up" style={{ animationDelay: `${idx * 50}ms` }}>
                       <CarCard car={car} showCompareButton={true} />
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <div className="text-6xl mb-4" aria-hidden="true">🚗</div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
                     No vehicles found
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-muted-foreground">
                     Try adjusting your search criteria or filters.
                   </p>
                 </div>
@@ -179,7 +192,7 @@ export function ListingsContent({ initialCars }: ListingsContentProps) {
       </div>
 
       {/* Floating Compare Button */}
-      <FloatingCompareButton availableCars={cars} />
+      <FloatingCompareButton />
     </div>
   )
 }

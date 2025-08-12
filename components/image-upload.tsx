@@ -5,6 +5,7 @@ import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
+import Image from "next/image"
 
 interface ImageUploadProps {
   onImagesUploaded: (urls: string[]) => void
@@ -18,7 +19,7 @@ export function ImageUpload({
   onImagesUploaded, 
   existingImages = [], 
   onImageRemove,
-  maxImages = 10,
+  maxImages = 25,
   className = ""
 }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false)
@@ -27,11 +28,11 @@ export function ImageUpload({
   const [uploadedImages, setUploadedImages] = useState<string[]>(existingImages)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
+  const uploadToBlob = async (file: File): Promise<string> => {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch('/api/cloudinary/upload', {
+    const response = await fetch('/api/blob/upload', {
       method: 'POST',
       body: formData,
     })
@@ -64,7 +65,7 @@ export function ImageUpload({
 
     try {
       const uploadPromises = imageFiles.map(async (file, index) => {
-        const url = await uploadToCloudinary(file)
+        const url = await uploadToBlob(file)
         setUploadProgress(((index + 1) / imageFiles.length) * 100)
         return url
       })
@@ -141,9 +142,11 @@ export function ImageUpload({
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {uploadedImages.map((imageUrl, index) => (
             <div key={index} className="relative group aspect-square">
-              <img
+              <Image
                 src={imageUrl}
                 alt={`Car image ${index + 1}`}
+                width={200}
+                height={200}
                 className="w-full h-full object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg" />

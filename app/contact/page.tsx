@@ -4,8 +4,6 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Breadcrumb } from "@/components/breadcrumb"
 import { ContactContent } from "@/components/contact-content"
-import { WhatsAppButton } from "@/components/whatsapp-button"
-import { FAQSection } from "@/components/faq-section"
 import { ErrorBoundary } from "@/components/error-boundary"
 
 export default function ContactPage() {
@@ -14,18 +12,14 @@ export default function ContactPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-black" suppressHydrationWarning>
+    <div className="min-h-screen bg-background" suppressHydrationWarning>
       <Navbar />
       <Breadcrumb items={breadcrumbItems} />
-      <main className="max-w-5xl mx-auto px-4 py-12">
+      <main className="max-w-6xl mx-auto px-4 py-6 md:py-8">
         <ErrorBoundary>
           <ContactContent />
         </ErrorBoundary>
-        <ErrorBoundary>
-          <FAQSection />
-        </ErrorBoundary>
       </main>
-      <WhatsAppButton />
       <Footer />
     </div>
   )

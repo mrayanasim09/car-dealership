@@ -30,10 +30,11 @@ export const config = {
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '5'),
   },
   
-  // 2FA Configuration
-  twoFactor: {
-    enabled: process.env.ENABLE_2FA === 'true',
-    secret: process.env.TOTP_SECRET || 'your-totp-secret-change-this-in-production',
+  // Email Verification Configuration
+  emailVerification: {
+    enabled: true,
+    codeExpiry: 10 * 60 * 1000, // 10 minutes
+    maxAttempts: 3,
   },
   
   // Environment

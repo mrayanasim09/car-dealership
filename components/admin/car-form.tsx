@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageUpload } from "@/components/image-upload"
-import { addCar, updateCar } from "@/lib/firebase"
 import type { Car } from "@/lib/types"
 import { toast } from "sonner"
 import { Loader2, Plus, X } from "lucide-react"
@@ -122,10 +121,71 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
       }
 
       if (car) {
-        await updateCar(car.id, carData)
+        const res = await fetch('/api/admin/cars', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-csrf-token': decodeURIComponent(document.cookie.match(/(?:^|; )csrf_token=([^;]*)/)?.[1] ?? '') },
+          credentials: 'include',
+          body: JSON.stringify({
+            id: car.id,
+            title: carData.title,
+            make: carData.make,
+            model: carData.model,
+            year: carData.year,
+            mileage: carData.mileage,
+            price: carData.price,
+            location: carData.location,
+            vin: carData.vin,
+            engine: carData.engine,
+            transmission: carData.transmission,
+            exteriorColor: carData.exteriorColor,
+            interiorColor: carData.interiorColor,
+            driveType: carData.driveType,
+            fuelType: carData.fuelType,
+            description: carData.description,
+            features,
+            images: allImages,
+            documents,
+            phone: carData.contact.phone,
+            whatsapp: carData.contact.whatsapp,
+            isFeatured: carData.isFeatured,
+            isInventory: carData.isInventory,
+            approved: carData.approved,
+          })
+        })
+        if (!res.ok) throw new Error('Update failed')
         toast.success("Car updated successfully!")
       } else {
-        await addCar(carData)
+        const res = await fetch('/api/admin/cars', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-csrf-token': decodeURIComponent(document.cookie.match(/(?:^|; )csrf_token=([^;]*)/)?.[1] ?? '') },
+          credentials: 'include',
+          body: JSON.stringify({
+            title: carData.title,
+            make: carData.make,
+            model: carData.model,
+            year: carData.year,
+            mileage: carData.mileage,
+            price: carData.price,
+            location: carData.location,
+            vin: carData.vin,
+            engine: carData.engine,
+            transmission: carData.transmission,
+            exteriorColor: carData.exteriorColor,
+            interiorColor: carData.interiorColor,
+            driveType: carData.driveType,
+            fuelType: carData.fuelType,
+            features,
+            images: allImages,
+            documents,
+            phone: carData.contact.phone,
+            whatsapp: carData.contact.whatsapp,
+            isFeatured: carData.isFeatured,
+            isInventory: carData.isInventory,
+            approved: carData.approved,
+            description: carData.description,
+          })
+        })
+        if (!res.ok) throw new Error('Create failed')
         toast.success("Car added successfully!")
       }
 
@@ -152,18 +212,18 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       {/* Basic Information */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-white">Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="title" className="text-gray-300">Title</Label>
+              <Label htmlFor="title" className="text-muted-foreground">Title</Label>
               <Input
                 id="title"
                 {...form.register("title")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="e.g., 2023 Honda Civic Sport"
               />
               {form.formState.errors.title && (
@@ -171,11 +231,11 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               )}
             </div>
             <div>
-              <Label htmlFor="location" className="text-gray-300">Location</Label>
+              <Label htmlFor="location" className="text-muted-foreground">Location</Label>
               <Input
                 id="location"
                 {...form.register("location")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="e.g., Los Angeles, CA"
               />
               {form.formState.errors.location && (
@@ -184,13 +244,13 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
-              <Label htmlFor="make" className="text-gray-300">Make</Label>
+              <Label htmlFor="make" className="text-muted-foreground">Make</Label>
               <Input
                 id="make"
                 {...form.register("make")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="e.g., Honda"
               />
               {form.formState.errors.make && (
@@ -198,11 +258,11 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               )}
             </div>
             <div>
-              <Label htmlFor="model" className="text-gray-300">Model</Label>
+              <Label htmlFor="model" className="text-muted-foreground">Model</Label>
               <Input
                 id="model"
                 {...form.register("model")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="e.g., Civic"
               />
               {form.formState.errors.model && (
@@ -210,12 +270,12 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               )}
             </div>
             <div>
-              <Label htmlFor="year" className="text-gray-300">Year</Label>
+              <Label htmlFor="year" className="text-muted-foreground">Year</Label>
               <Input
                 id="year"
                 type="number"
                 {...form.register("year", { valueAsNumber: true })}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="2023"
               />
               {form.formState.errors.year && (
@@ -223,12 +283,12 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               )}
             </div>
             <div>
-              <Label htmlFor="mileage" className="text-gray-300">Mileage</Label>
+              <Label htmlFor="mileage" className="text-muted-foreground">Mileage</Label>
               <Input
                 id="mileage"
                 type="number"
                 {...form.register("mileage", { valueAsNumber: true })}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="50000"
               />
               {form.formState.errors.mileage && (
@@ -237,14 +297,14 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="price" className="text-gray-300">Price ($)</Label>
+              <Label htmlFor="price" className="text-muted-foreground">Price ($)</Label>
               <Input
                 id="price"
                 type="number"
                 {...form.register("price", { valueAsNumber: true })}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="25000"
               />
               {form.formState.errors.price && (
@@ -252,11 +312,11 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               )}
             </div>
             <div>
-              <Label htmlFor="vin" className="text-gray-300">VIN (Optional)</Label>
+              <Label htmlFor="vin" className="text-muted-foreground">VIN (Optional)</Label>
               <Input
                 id="vin"
                 {...form.register("vin")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="1G1AP5G29J4000001"
               />
             </div>
@@ -265,18 +325,18 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
       </Card>
 
       {/* Contact Information */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-white">Contact Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="phone" className="text-gray-300">Phone</Label>
+              <Label htmlFor="phone" className="text-muted-foreground">Phone</Label>
               <Input
                 id="phone"
                 {...form.register("phone")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="+1 (555) 123-4567"
               />
               {form.formState.errors.phone && (
@@ -284,11 +344,11 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               )}
             </div>
             <div>
-              <Label htmlFor="whatsapp" className="text-gray-300">WhatsApp (Optional)</Label>
+              <Label htmlFor="whatsapp" className="text-muted-foreground">WhatsApp (Optional)</Label>
               <Input
                 id="whatsapp"
                 {...form.register("whatsapp")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="+1 (555) 123-4567"
               />
             </div>
@@ -297,28 +357,28 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
       </Card>
 
       {/* Technical Specifications */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-white">Technical Specifications</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="engine" className="text-gray-300">Engine (Optional)</Label>
+              <Label htmlFor="engine" className="text-muted-foreground">Engine (Optional)</Label>
               <Input
                 id="engine"
                 {...form.register("engine")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="2.0L I4 Turbo"
               />
             </div>
             <div>
-              <Label htmlFor="transmission" className="text-gray-300">Transmission (Optional)</Label>
+              <Label htmlFor="transmission" className="text-muted-foreground">Transmission (Optional)</Label>
               <Select onValueChange={(value) => form.setValue("transmission", value)} defaultValue={form.getValues("transmission")}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue placeholder="Select transmission" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-700 border-gray-600">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="Automatic">Automatic</SelectItem>
                   <SelectItem value="Manual">Manual</SelectItem>
                   <SelectItem value="CVT">CVT</SelectItem>
@@ -329,20 +389,20 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="exteriorColor" className="text-gray-300">Exterior Color (Optional)</Label>
+              <Label htmlFor="exteriorColor" className="text-muted-foreground">Exterior Color (Optional)</Label>
               <Input
                 id="exteriorColor"
                 {...form.register("exteriorColor")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="Black"
               />
             </div>
             <div>
-              <Label htmlFor="interiorColor" className="text-gray-300">Interior Color (Optional)</Label>
+              <Label htmlFor="interiorColor" className="text-muted-foreground">Interior Color (Optional)</Label>
               <Input
                 id="interiorColor"
                 {...form.register("interiorColor")}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="Black"
               />
             </div>
@@ -350,12 +410,12 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="driveType" className="text-gray-300">Drive Type (Optional)</Label>
+              <Label htmlFor="driveType" className="text-muted-foreground">Drive Type (Optional)</Label>
               <Select onValueChange={(value) => form.setValue("driveType", value)} defaultValue={form.getValues("driveType")}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue placeholder="Select drive type" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-700 border-gray-600">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="FWD">Front-Wheel Drive</SelectItem>
                   <SelectItem value="RWD">Rear-Wheel Drive</SelectItem>
                   <SelectItem value="AWD">All-Wheel Drive</SelectItem>
@@ -364,12 +424,12 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               </Select>
             </div>
             <div>
-              <Label htmlFor="fuelType" className="text-gray-300">Fuel Type (Optional)</Label>
+              <Label htmlFor="fuelType" className="text-muted-foreground">Fuel Type (Optional)</Label>
               <Select onValueChange={(value) => form.setValue("fuelType", value)} defaultValue={form.getValues("fuelType")}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue placeholder="Select fuel type" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-700 border-gray-600">
+                <SelectContent className="bg-card border-border">
                   <SelectItem value="Gasoline">Gasoline</SelectItem>
                   <SelectItem value="Diesel">Diesel</SelectItem>
                   <SelectItem value="Hybrid">Hybrid</SelectItem>
@@ -382,19 +442,19 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
       </Card>
 
       {/* Description & Features */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-white">Description & Features</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="description" className="text-gray-300">Description</Label>
+            <Label htmlFor="description" className="text-muted-foreground">Description</Label>
             <Textarea
               id="description"
               {...form.register("description")}
-              className="bg-gray-700 border-gray-600 text-white"
+              className="bg-background border-border text-foreground"
               placeholder="Enter detailed car description..."
-              rows={4}
+              rows={3}
             />
             {form.formState.errors.description && (
               <p className="text-red-400 text-sm mt-1">{form.formState.errors.description.message}</p>
@@ -402,31 +462,31 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
           </div>
           
           <div>
-            <Label htmlFor="features" className="text-gray-300">Features (Optional)</Label>
+            <Label htmlFor="features" className="text-muted-foreground">Features (Optional)</Label>
             <Textarea
               id="features"
               {...form.register("features")}
-              className="bg-gray-700 border-gray-600 text-white"
+              className="bg-background border-border text-foreground"
               placeholder="Enter each feature on a new line. Example:&#10;Bluetooth Connectivity&#10;Backup Camera&#10;Heated Seats&#10;Sunroof"
-              rows={4}
+              rows={3}
             />
           </div>
           
           <div>
-            <Label htmlFor="documents" className="text-gray-300">Documents (Optional)</Label>
+            <Label htmlFor="documents" className="text-muted-foreground">Documents (Optional)</Label>
             <Textarea
               id="documents"
               {...form.register("documents")}
-              className="bg-gray-700 border-gray-600 text-white"
+              className="bg-background border-border text-foreground"
               placeholder="Enter each document as `name,url` on a new line. Example:&#10;Carfax Report,https://example.com/carfax.pdf&#10;Service History,https://example.com/service.pdf"
-              rows={3}
+              rows={2}
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Car Images */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-white">Car Images</CardTitle>
         </CardHeader>
@@ -438,18 +498,18 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
           
           {/* Manual URL Input */}
           <div className="space-y-3">
-            <Label className="text-gray-300">Add Image URLs (Optional)</Label>
-            <div className="flex gap-2">
+            <Label className="text-muted-foreground">Add Image URLs (Optional)</Label>
+            <div className="flex gap-2 flex-wrap">
               <Input
                 value={newManualUrl}
                 onChange={(e) => setNewManualUrl(e.target.value)}
-                placeholder="https://res.cloudinary.com/your-cloud/image/upload/..."
-                className="bg-gray-700 border-gray-600 text-white flex-1"
+                placeholder="https://example.com/image.jpg"
+                className="bg-background border-border text-foreground flex-1"
               />
               <Button
                 type="button"
                 onClick={addManualUrl}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary hover:bg-primary/90"
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -458,16 +518,16 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
             {/* Display manual URLs */}
             {manualUrls.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-gray-300">Manual URLs:</Label>
+                <Label className="text-muted-foreground">Manual URLs:</Label>
                 {manualUrls.map((url, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-700 rounded">
-                    <span className="text-gray-300 text-sm flex-1 truncate">{url}</span>
+                  <div key={index} className="flex items-center gap-2 p-2 bg-card rounded border border-border">
+                    <span className="text-muted-foreground text-sm flex-1 truncate">{url}</span>
                     <Button
                       type="button"
                       onClick={() => removeManualUrl(url)}
                       size="sm"
                       variant="ghost"
-                      className="text-red-400 hover:text-red-300"
+                       className="text-primary hover:text-primary/80"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -480,7 +540,7 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
       </Card>
 
       {/* Display Settings */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-white">Display Settings</CardTitle>
         </CardHeader>
@@ -491,10 +551,10 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               checked={form.watch("approved")}
               onCheckedChange={(checked) => form.setValue("approved", checked as boolean)}
             />
-            <Label htmlFor="approved" className="text-gray-300">
+            <Label htmlFor="approved" className="text-muted-foreground">
               Approved
             </Label>
-            <Badge variant="outline" className="text-gray-400 border-gray-600">
+            <Badge variant="outline" className="text-muted-foreground border-border">
               Mark car as approved for public display.
             </Badge>
           </div>
@@ -505,10 +565,10 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               checked={form.watch("isInventory")}
               onCheckedChange={(checked) => form.setValue("isInventory", checked as boolean)}
             />
-            <Label htmlFor="isInventory" className="text-gray-300">
+            <Label htmlFor="isInventory" className="text-muted-foreground">
               Show in Inventory
             </Label>
-            <Badge variant="outline" className="text-gray-400 border-gray-600">
+            <Badge variant="outline" className="text-muted-foreground border-border">
               Display this car in the main inventory list.
             </Badge>
           </div>
@@ -519,10 +579,10 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
               checked={form.watch("isFeatured")}
               onCheckedChange={(checked) => form.setValue("isFeatured", checked as boolean)}
             />
-            <Label htmlFor="isFeatured" className="text-gray-300">
+            <Label htmlFor="isFeatured" className="text-muted-foreground">
               Show in Featured Vehicles
             </Label>
-            <Badge variant="outline" className="text-gray-400 border-gray-600">
+            <Badge variant="outline" className="text-muted-foreground border-border">
               Highlight this car on the homepage or featured sections.
             </Badge>
           </div>
@@ -535,7 +595,7 @@ export function CarForm({ car, onSuccess, onCancel }: CarFormProps) {
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+          className="border-border text-foreground hover:bg-accent"
         >
           Cancel
         </Button>

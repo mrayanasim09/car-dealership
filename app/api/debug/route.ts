@@ -10,20 +10,33 @@ export async function GET() {
     // Check authentication
     await authManager.requireAdmin()
     
-    const debugInfo = {
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
+    const config = {
       firebase: {
         configured: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+        measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
       },
-      cloudinary: {
-        configured: !!process.env.CLOUDINARY_API_KEY,
-        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-      }
+      vercel: {
+        analytics: process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ID,
+        speedInsights: process.env.NEXT_PUBLIC_VERCEL_SPEED_INSIGHTS_ID,
+      },
+      auth: {
+        nextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+        nextAuthUrl: process.env.NEXTAUTH_URL,
+      },
+      admin: {
+        emails: process.env.NEXT_PUBLIC_ADMIN_EMAILS || process.env.ADMIN_EMAILS,
+      },
+      blob: {
+        token: !!process.env.BLOB_READ_WRITE_TOKEN,
+      },
     }
     
-    return NextResponse.json(debugInfo)
+    return NextResponse.json(config)
   } catch (error: unknown) {
     console.error('Debug route error:', error)
     

@@ -1,6 +1,9 @@
+"use client"
 import { Card, CardContent } from "@/components/ui/card"
+import { BrandName } from "@/components/brand-name"
 import { Badge } from "@/components/ui/badge"
 import { Users, Award, Shield, Heart, Star, CheckCircle, MapPin, Phone, Mail } from "lucide-react"
+// Subtle CSS animations are used for performance and to avoid client boundary issues
 
 export function AboutContent() {
   const stats = [
@@ -34,33 +37,38 @@ export function AboutContent() {
   ]
 
   return (
-    <div className="bg-black text-white">
+    <div className="bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-gray-900 to-black text-white py-16 md:py-20">
-        <div className="absolute inset-0 bg-black opacity-70"></div>
-        <div className="relative container mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-white">About AM Tycoons Inc</h1>
-          <p className="text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 text-gray-200 max-w-3xl mx-auto">
+      <section className="relative bg-background py-10 md:py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-foreground animate-fade-in">
+            About <BrandName className="inline" />
+          </h1>
+          <p className="text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 text-muted-foreground max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '80ms' }}>
             Your trusted partner in finding quality pre-owned vehicles since 2009
           </p>
-          <Badge className="bg-red-600 text-white px-4 md:px-6 py-2 text-base md:text-lg">15+ Years of Excellence</Badge>
+          <div className="animate-fade-in" style={{ animationDelay: '140ms' }}>
+            <Badge className="bg-primary text-primary-foreground px-4 md:px-6 py-2 text-base md:text-lg">15+ Years of Excellence</Badge>
+          </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 md:py-16 bg-gray-900">
+      <section className="py-8 md:py-14 bg-card">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon
               return (
-                <Card key={index} className="text-center bg-gray-800 border-gray-700">
+                <div key={index} className="animate-slide-up" style={{ animationDelay: `${index * 60}ms` }}>
+                <Card className="text-center bg-card border-border">
                   <CardContent className="p-4 md:p-6">
-                    <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-red-500 mx-auto mb-3 md:mb-4" />
-                    <div className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">{stat.value}</div>
-                    <p className="text-sm md:text-base text-gray-300 font-medium">{stat.label}</p>
+                    <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-primary mx-auto mb-3 md:mb-4" />
+                    <div className="text-2xl md:text-3xl font-bold text-foreground mb-1 md:mb-2">{stat.value}</div>
+                    <p className="text-sm md:text-base text-muted-foreground font-medium">{stat.label}</p>
                   </CardContent>
                 </Card>
+                </div>
               )
             })}
           </div>
@@ -68,13 +76,13 @@ export function AboutContent() {
       </section>
 
       {/* Story Section */}
-      <section className="py-12 md:py-16 bg-black">
+      <section className="py-8 md:py-14 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6">Our Story</h2>
-            <div className="space-y-4 md:space-y-6 text-gray-200 text-base md:text-lg leading-relaxed">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 md:mb-6">Our Story</h2>
+            <div className="space-y-4 md:space-y-6 text-muted-foreground text-base md:text-lg leading-relaxed">
               <p>
-                Founded in 2009 by automotive enthusiast AM Tycoons Inc began as a small family business
+                Founded in 2009 by automotive enthusiast <BrandName className="inline" /> began as a small family business
                 with a simple mission: to provide quality pre-owned vehicles with honest, transparent service.
               </p>
               <p>
@@ -92,11 +100,11 @@ export function AboutContent() {
       </section>
 
       {/* Values Section */}
-      <section className="py-12 md:py-16 bg-gray-900">
+      <section className="py-8 md:py-14 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4">Our Values</h2>
-            <p className="text-gray-300 max-w-2xl mx-auto font-medium">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 md:mb-4">Our Values</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto font-medium">
               These core principles guide everything we do and ensure every customer has an exceptional experience.
             </p>
           </div>
@@ -104,11 +112,11 @@ export function AboutContent() {
             {values.map((value, index) => {
               const IconComponent = value.icon
               return (
-                <Card key={index} className="text-center h-full bg-gray-800 border-gray-700">
+                <Card key={index} className="text-center h-full bg-card border-border">
                   <CardContent className="p-4 md:p-6">
-                    <IconComponent className="h-10 w-10 md:h-12 md:w-12 text-red-500 mx-auto mb-3 md:mb-4" />
-                    <h3 className="text-lg md:text-xl font-semibold text-white mb-2 md:mb-3">{value.title}</h3>
-                    <p className="text-sm md:text-base text-gray-300">{value.description}</p>
+                    <IconComponent className="h-10 w-10 md:h-12 md:w-12 text-primary mx-auto mb-3 md:mb-4" />
+                    <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">{value.title}</h3>
+                    <p className="text-sm md:text-base text-muted-foreground">{value.description}</p>
                   </CardContent>
                 </Card>
               )
@@ -118,31 +126,31 @@ export function AboutContent() {
       </section>
 
       {/* Location & Contact Section */}
-      <section className="py-12 md:py-16 bg-black">
+      <section className="py-8 md:py-14 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4">Visit Our Showroom</h2>
-            <p className="text-gray-300 max-w-2xl mx-auto font-medium">
-              Come see us in person and experience the AM Tycoons Inc difference.
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 md:mb-4">Visit Our Office</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto font-medium">
+              Come see us in person and experience the <BrandName className="inline" /> difference.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-4xl mx-auto">
-            <Card className="text-center bg-gray-800 border-gray-700">
+            <Card className="text-center bg-card border-border">
               <CardContent className="p-4 md:p-6">
-                <MapPin className="h-10 w-10 md:h-12 md:w-12 text-red-500 mx-auto mb-3 md:mb-4" />
-                <h3 className="text-lg md:text-xl font-semibold text-white mb-2 md:mb-3">Our Location</h3>
-                <p className="text-sm md:text-base text-gray-300">
+                <MapPin className="h-10 w-10 md:h-12 md:w-12 text-primary mx-auto mb-3 md:mb-4" />
+                <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">Our Location</h3>
+                <p className="text-sm md:text-base text-muted-foreground">
                   12440 Firestone Blvd, Suite 3025D<br />
                   Norwalk, CA 90650
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="text-center bg-gray-800 border-gray-700">
+            <Card className="text-center bg-card border-border">
               <CardContent className="p-4 md:p-6">
-                <Phone className="h-10 w-10 md:h-12 md:w-12 text-red-500 mx-auto mb-3 md:mb-4" />
-                <h3 className="text-lg md:text-xl font-semibold text-white mb-2 md:mb-3">Call Us</h3>
-                <div className="space-y-1 text-sm md:text-base text-gray-300">
+                <Phone className="h-10 w-10 md:h-12 md:w-12 text-primary mx-auto mb-3 md:mb-4" />
+                <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">Call Us</h3>
+                <div className="space-y-1 text-sm md:text-base text-muted-foreground">
                   <p>+1 424-303-0386</p>
                   <p>+1 310-350-7709</p>
                   <p>+1 310-972-0341</p>
@@ -151,12 +159,12 @@ export function AboutContent() {
               </CardContent>
             </Card>
             
-            <Card className="text-center bg-gray-800 border-gray-700">
+            <Card className="text-center bg-card border-border">
               <CardContent className="p-4 md:p-6">
-                <Mail className="h-10 w-10 md:h-12 md:w-12 text-red-500 mx-auto mb-3 md:mb-4" />
-                <h3 className="text-lg md:text-xl font-semibold text-white mb-2 md:mb-3">Email Us</h3>
-                <p className="text-sm md:text-base text-gray-300">
-                  info@amtycoons.com<br />               
+                <Mail className="h-10 w-10 md:h-12 md:w-12 text-primary mx-auto mb-3 md:mb-4" />
+                <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">Email Us</h3>
+                <p className="text-sm md:text-base text-muted-foreground">
+                  info@amtycoonsinc.com<br />               
                 </p>
               </CardContent>
             </Card>
@@ -165,11 +173,11 @@ export function AboutContent() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 md:py-16 bg-red-600 text-white">
+      <section className="py-10 md:py-16 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">Ready to Find Your Perfect Car?</h2>
-          <p className="text-lg md:text-xl mb-6 md:mb-8 text-red-100">
-            Browse our inventory or visit our showroom to experience the AM Tycoons Inc difference.
+          <p className="text-lg md:text-xl mb-6 md:mb-8">
+            Browse our inventory or visit our showroom to experience the <BrandName className="inline" /> difference.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <a

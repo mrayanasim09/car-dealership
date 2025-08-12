@@ -83,35 +83,32 @@ export function MultiContactOptions({
     return (
       <Card className={cn("w-full", className)}>
         <CardContent className="p-4">
-          <h4 className="font-semibold text-gray-900 mb-3">Contact Us</h4>
+          <h4 className="font-semibold text-foreground mb-3">Contact Us</h4>
           <div className="space-y-3">
             {CONTACT_NUMBERS.map((contact, index) => (
               <div key={index} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{contact.label}</span>
-                <div className="flex gap-1">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Phone className="h-3 w-3 text-red-600" />
+                  {contact.label}
+                </span>
+                <div className="flex gap-2">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleCall(contact.number)}
-                    className="h-8 w-8 p-0"
+                    className="h-8 px-2"
+                    aria-label={`Call ${contact.label}`}
                   >
-                    <Phone className="h-3 w-3" />
+                    Call
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleSMS(contact.number)}
-                    className="h-8 w-8 p-0"
+                    className="h-8 px-2"
+                    aria-label={`SMS ${contact.label}`}
                   >
-                    <MessageSquare className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleWhatsApp(contact.number)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <MessageCircle className="h-3 w-3" />
+                    SMS
                   </Button>
                 </div>
               </div>
@@ -138,13 +135,13 @@ export function MultiContactOptions({
         <Card className="absolute top-full left-0 right-0 mt-1 z-50 shadow-lg">
           <CardContent className="p-2">
             {CONTACT_NUMBERS.map((contact, index) => (
-              <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+              <div key={index} className="flex items-center justify-between p-2 hover:bg-accent rounded">
                 <button
                   onClick={() => {
                     setSelectedNumber(contact)
                     setIsExpanded(false)
                   }}
-                  className="text-sm text-gray-700 hover:text-gray-900"
+                  className="text-sm text-foreground hover:text-primary"
                 >
                   {contact.label}
                 </button>

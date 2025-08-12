@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { StarRating } from "@/components/star-rating"
-import { addReview, isFirebaseAvailable } from "@/lib/firebase"
 import { useToast } from "@/hooks/use-toast"
 
 interface ReviewFormProps {
@@ -34,25 +33,23 @@ export function ReviewForm({ carId }: ReviewFormProps) {
       return
     }
 
-    if (!isFirebaseAvailable()) {
-      toast({
-        title: "Demo Mode",
-        description: "Review submission requires Firebase configuration",
-        variant: "destructive",
-      })
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
-      await addReview({
-        carId,
-        name: name.trim(),
-        comment: comment.trim(),
-        stars: rating,
-        createdAt: new Date(),
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          carId,
+          name: name.trim(),
+          comment: comment.trim(),
+          stars: rating,
+        }),
       })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error || "Failed to submit review")
+      }
 
       toast({
         title: "Success",
@@ -62,7 +59,7 @@ export function ReviewForm({ carId }: ReviewFormProps) {
       setName("")
       setComment("")
       setRating(5)
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to submit review. Please try again.",
@@ -76,14 +73,6 @@ export function ReviewForm({ carId }: ReviewFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 border-t pt-6">
       <h3 className="text-lg font-medium">Leave a Review</h3>
-
-      {!isFirebaseAvailable() && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <p className="text-sm text-yellow-800">
-            <strong>Demo Mode:</strong> Review submission requires Firebase configuration.
-          </p>
-        </div>
-      )}
 
       <div>
         <Label htmlFor="name">Your Name</Label>
@@ -113,7 +102,7 @@ export function ReviewForm({ carId }: ReviewFormProps) {
         />
       </div>
 
-      <Button type="submit" disabled={isSubmitting || !isFirebaseAvailable()} className="bg-red-600 hover:bg-red-700">
+      <Button type="submit" disabled={isSubmitting} className="bg-red-600 hover:bg-red-700">
         {isSubmitting ? "Submitting..." : "Submit Review"}
       </Button>
     </form>

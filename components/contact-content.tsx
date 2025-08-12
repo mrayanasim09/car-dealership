@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { useToast } from "@/components/ui/use-toast"
-import { submitContactForm } from "@/lib/firebase"
-import { MapPin, Phone, Mail, Clock, MessageCircle, Send, Car, CreditCard, Wrench } from "lucide-react"
+import { MapPin, Mail, Clock, Send, Car, CreditCard, Wrench } from "lucide-react"
+import Script from 'next/script'
 
 export function ContactContent() {
   const [formData, setFormData] = useState({
@@ -24,6 +24,7 @@ export function ContactContent() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -90,7 +91,31 @@ export function ContactContent() {
     setIsSubmitting(true)
 
     try {
-      await submitContactForm(formData)
+      let recaptchaToken: string | undefined
+      try {
+        // @ts-expect-error recaptcha global provided by script at runtime
+        if (window.grecaptcha && siteKey) {
+          // @ts-expect-error recaptcha global provided by script at runtime
+          recaptchaToken = await window.grecaptcha.execute(siteKey, { action: 'contact_form' })
+        }
+      } catch {}
+
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+          recaptchaToken,
+        })
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error || 'Failed to send message')
+      }
       toast({
         title: "Message Sent!",
         description: "Thank you for contacting us. We'll get back to you within 24 hours.",
@@ -117,18 +142,12 @@ export function ContactContent() {
   const contactInfo = [
     {
       icon: MapPin,
-      title: "Visit Our Showroom",
+      title: "Visit Our Office",
       details: ["AM Tycoons Inc", "12440 Firestone Blvd, Suite 3025D", "Norwalk, 90650 CA"],
       action: "Get Directions",
       actionUrl: "https://maps.app.goo.gl/f4gvfxgLNSoqSJAaA",
     },
-    {
-      icon: Phone,
-      title: "Call Us 24/7",
-      details: ["+1 424-303-0386", "+1 310-350-7709", "+1 310-972-0341", "+1 310-904-8377", "Available 24/7 for calls, SMS & WhatsApp"],
-      action: "Call Now",
-      actionUrl: "tel:+14243030386",
-    },
+    // Phone cards replaced by dedicated numbers section below
     {
       icon: Mail,
       title: "Email Us",
@@ -136,13 +155,7 @@ export function ContactContent() {
       action: "Send Email",
       actionUrl: "mailto:info@amtycoonsinc.com",
     },
-    {
-      icon: MessageCircle,
-      title: "WhatsApp",
-      details: ["24/7 Support", "Quick responses anytime"],
-      action: "Chat Now",
-      actionUrl: "https://wa.me/14243030386",
-    },
+    // SMS card replaced by dedicated numbers section below
   ]
 
   const services = [
@@ -170,38 +183,35 @@ export function ContactContent() {
   ]
 
   return (
-    <div className="bg-black text-white">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-gray-900 to-black text-white py-20">
-        <div className="absolute inset-0 bg-black opacity-70"></div>
-        <div className="relative container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">Contact Us</h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-3xl mx-auto">
-            We&apos;re here to help you find the perfect vehicle and answer any questions you may have.
-          </p>
+    <div className="bg-background text-foreground">
+      {siteKey ? (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+          strategy="lazyOnload"
+        />
+      ) : null}
+      {/* Compact Hero */}
+      <section className="relative bg-background pt-10 pb-6">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground">Contact Us</h1>
+          <p className="text-base md:text-xl mt-2 text-muted-foreground max-w-3xl mx-auto">We&apos;re here to help you find the perfect vehicle and answer any questions you may have.</p>
         </div>
       </section>
 
       {/* Contact Information */}
-      <section className="py-16 bg-gray-900">
+      <section className="py-6 md:py-8 bg-background">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Get In Touch</h2>
-            <p className="text-gray-300 max-w-2xl mx-auto">
-              Multiple ways to reach us. Choose what works best for you.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {contactInfo.map((info, index) => {
               const IconComponent = info.icon
               return (
-                <Card key={index} className="text-center h-full bg-gray-800 border-gray-700">
+                <Card key={index} className="text-center h-full bg-card border-border">
                   <CardContent className="p-6">
                     <IconComponent className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-3">{info.title}</h3>
+                    <h3 className="text-xl font-semibold text-foreground mb-3">{info.title}</h3>
                     <div className="space-y-1 mb-4">
                       {info.details.map((detail, idx) => (
-                        <p key={idx} className="text-gray-300">
+                        <p key={idx} className="text-muted-foreground">
                           {detail}
                         </p>
                       ))}
@@ -210,7 +220,7 @@ export function ContactContent() {
                       href={info.actionUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                      className="inline-block bg-primary text-primary-foreground px-4 py-3 rounded hover:bg-primary/90 transition-colors touch-button"
                     >
                       {info.action}
                     </a>
@@ -222,24 +232,62 @@ export function ContactContent() {
         </div>
       </section>
 
-      {/* Contact Form & Map */}
-      <section className="py-16 bg-black">
+      {/* Phone Numbers Section - show all 4 with Call/SMS (no labels) */}
+      <section className="py-6 md:py-8 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="text-center mb-8 md:mb-10">
+            <h2 className="text-3xl font-bold text-foreground mb-2">Contact Numbers</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">Call or text us anytime. We&apos;re here to help you find your perfect vehicle.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { e164: "+14243030386", label: "+1 424-303-0386" },
+              { e164: "+13103507709", label: "+1 310-350-7709" },
+              { e164: "+13109720341", label: "+1 310-972-0341" },
+              { e164: "+13109048377", label: "+1 310-904-8377" }
+            ].map((phone, index) => (
+              <Card key={index} className="bg-card border-border">
+                <CardContent className="p-6 text-center">
+                  <p className="text-xl font-bold text-primary mb-4">{phone.label}</p>
+                  <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 justify-center">
+                    <a
+                      href={`tel:${phone.e164}`}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-lg font-medium transition-colors touch-button"
+                    >
+                      Call Now
+                    </a>
+                    <a
+                      href={`sms:${phone.e164}`}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-lg font-medium transition-colors touch-button"
+                    >
+                      Send SMS
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Form & Map */}
+      <section className="py-6 md:py-8 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {/* Contact Form */}
             <div>
-              <h2 className="text-3xl font-bold text-white mb-6">Send Us a Message</h2>
-              <Card className="bg-gray-800 border-gray-700">
+              <h2 className="text-3xl font-bold text-foreground mb-6">Send Us a Message</h2>
+              <Card className="bg-card border-border">
                 <CardContent className="p-6">
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="name" className="text-white">Full Name *</Label>
+                         <Label htmlFor="name" className="text-foreground">Full Name *</Label>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.name ? "border-red-500" : ""}`}
+                           className={`bg-background border-border text-foreground placeholder:text-muted-foreground touch-input ${errors.name ? "border-primary" : ""}`}
                           required
                         />
                         {errors.name && (
@@ -247,13 +295,13 @@ export function ContactContent() {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="email" className="text-white">Email *</Label>
+                         <Label htmlFor="email" className="text-foreground">Email *</Label>
                         <Input
                           id="email"
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.email ? "border-red-500" : ""}`}
+                           className={`bg-background border-border text-foreground placeholder:text-muted-foreground touch-input ${errors.email ? "border-primary" : ""}`}
                           required
                         />
                         {errors.email && (
@@ -264,25 +312,25 @@ export function ContactContent() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="phone" className="text-white">Phone Number</Label>
+                         <Label htmlFor="phone" className="text-foreground">Phone Number</Label>
                         <Input
                           id="phone"
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.phone ? "border-red-500" : ""}`}
+                           className={`bg-background border-border text-foreground placeholder:text-muted-foreground touch-input ${errors.phone ? "border-primary" : ""}`}
                         />
                         {errors.phone && (
                           <p className="text-red-400 text-sm mt-1">{errors.phone}</p>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="subject" className="text-white">Subject *</Label>
+                         <Label htmlFor="subject" className="text-foreground">Subject *</Label>
                         <Input
                           id="subject"
                           value={formData.subject}
                           onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                          className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.subject ? "border-red-500" : ""}`}
+                           className={`bg-background border-border text-foreground placeholder:text-muted-foreground touch-input ${errors.subject ? "border-primary" : ""}`}
                           required
                         />
                         {errors.subject && (
@@ -292,14 +340,14 @@ export function ContactContent() {
                     </div>
 
                     <div>
-                      <Label htmlFor="message" className="text-white">Message *</Label>
+                       <Label htmlFor="message" className="text-foreground">Message *</Label>
                       <Textarea
                         id="message"
                         rows={6}
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                         placeholder="Tell us how we can help you..."
-                        className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.message ? "border-red-500" : ""}`}
+                         className={`bg-background border-border text-foreground placeholder:text-muted-foreground touch-input ${errors.message ? "border-primary" : ""}`}
                         required
                       />
                       {errors.message && (
@@ -310,13 +358,21 @@ export function ContactContent() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-red-600 hover:bg-red-700"
+                       className="w-full bg-primary hover:bg-primary/90 touch-button text-primary-foreground"
                       size="lg"
                     >
                       <Send className="mr-2 h-4 w-4" />
                       {isSubmitting ? "Sending..." : "Send Message"}
                     </Button>
                   </form>
+                  {siteKey ? (
+                    <p className="mt-2 text-xs text-muted-foreground text-center">
+                      This site is protected by reCAPTCHA and the Google
+                      {' '}<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Privacy Policy</a>{' '}
+                      and
+                      {' '}<a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms of Service</a>{' '}apply.
+                    </p>
+                  ) : null}
                 </CardContent>
               </Card>
             </div>
@@ -325,13 +381,13 @@ export function ContactContent() {
             <div className="space-y-8">
               {/* Map */}
               <div>
-                <h3 className="text-2xl font-bold text-white mb-4">Find Us</h3>
-                <Card className="bg-gray-800 border-gray-700">
+                 <h3 className="text-2xl font-bold text-foreground mb-4">Find Us</h3>
+                 <Card className="bg-card border-border">
                   <CardContent className="p-0">
-                    <div className="relative h-64 bg-gray-700 rounded-lg overflow-hidden">
+                    <div className="relative h-64 md:h-72 bg-card rounded-lg overflow-hidden">
                       <iframe
-                        title="AM Tycoons Inc. Location Map"
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3313.8!2d-118.0686423!3d33.9046666!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80dd2d2b1e8dfd29%3A0xed62bb21e3e561f6!2s12440%20Firestone%20Blvd%2C%20Norwalk%2C%20CA%2090650!5e0!3m2!1sen!2sus!4v1699999999999!5m2!1sen!2sus"
+                        title="Location Map"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3309.733727670564!2d-118.088844!3d33.908600!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2cfdbf7d3a0a3%3A0x0000000000000000!2s12440%20Firestone%20Blvd%20Suite%203025D%2C%20Norwalk%2C%20CA%2090650!5e0!3m2!1sen!2sus!4v1700000000000"
                         width="100%"
                         height="100%"
                         style={{ border: 0 }}
@@ -347,8 +403,8 @@ export function ContactContent() {
 
               {/* Business Hours */}
               <div>
-                <h3 className="text-2xl font-bold text-white mb-4">Business Hours</h3>
-                <Card className="bg-gray-800 border-gray-700">
+                 <h3 className="text-2xl font-bold text-foreground mb-4">Business Hours</h3>
+                 <Card className="bg-card border-border">
                   <CardHeader>
                     <CardTitle className="flex items-center text-white">
                       <Clock className="h-5 w-5 mr-2 text-red-500" />
@@ -359,8 +415,8 @@ export function ContactContent() {
                     <div className="space-y-3">
                       {hours.map((hour, index) => (
                         <div key={index} className="flex justify-between items-center">
-                          <span className="font-medium text-white">{hour.day}</span>
-                          <span className="text-gray-300">{hour.time}</span>
+                          <span className="font-medium text-foreground">{hour.day}</span>
+                          <span className="text-muted-foreground">{hour.time}</span>
                         </div>
                       ))}
                     </div>
@@ -373,11 +429,11 @@ export function ContactContent() {
       </section>
 
       {/* Services */}
-      <section className="py-16 bg-gray-900">
+      <section className="py-8 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Our Services</h2>
-            <p className="text-gray-300 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Our Services</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               From sales to service, we&apos;re your one-stop automotive destination.
             </p>
           </div>
@@ -385,11 +441,11 @@ export function ContactContent() {
             {services.map((service, index) => {
               const IconComponent = service.icon
               return (
-                <Card key={index} className="text-center bg-gray-800 border-gray-700">
+                <Card key={index} className="text-center bg-card border-border">
                   <CardContent className="p-6">
                     <IconComponent className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-3">{service.title}</h3>
-                    <p className="text-gray-300">{service.description}</p>
+                    <h3 className="text-xl font-semibold text-foreground mb-3">{service.title}</h3>
+                    <p className="text-muted-foreground">{service.description}</p>
                   </CardContent>
                 </Card>
               )

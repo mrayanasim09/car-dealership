@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
+import { BrandName } from "@/components/brand-name";
 
 const defaultFaqs = [
   {
-    question: "What services does AM Tycoons Inc. offer?",
+    question: <span>What services does <BrandName className="inline" /> offer?</span>,
     answer: "We offer a wide range of services including vehicle sales, financing, and professional service & maintenance for all makes and models."
   },
   {
-    question: "How can I contact AM Tycoons Inc.?",
+    question: <span>How can I contact <BrandName className="inline" />?</span>,
     answer: "You can contact us via phone, email, WhatsApp, or by visiting our showroom. All contact details are available on our Contact page."
   },
   {
@@ -28,28 +29,25 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-16 bg-black">
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-white mb-8 text-center">Frequently Asked Questions</h2>
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-red-900/30 border border-red-700 rounded-lg p-6 text-center shadow">
-            <h3 className="text-2xl font-bold text-red-400 mb-2">Financing Available</h3>
-            <p className="text-gray-300 mb-4">We offer flexible financing options with competitive rates to help you drive away in your dream car. Apply online or visit us to learn more!</p>
-            <a href="/contact" className="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors">Get Financing Info</a>
-          </div>
+        <h2 className="text-3xl font-bold text-foreground mb-8 text-center">Frequently Asked Questions</h2>
+        <div className="max-w-2xl mx-auto mb-8 text-center">
+          <h3 className="text-2xl font-bold text-primary mb-2">Financing Available</h3>
+          <p className="text-muted-foreground">We offer flexible financing options with competitive rates to help you drive away in your dream car.</p>
         </div>
         <div className="max-w-2xl mx-auto space-y-4">
           {defaultFaqs.map((faq, idx) => (
-            <div key={idx} className="border border-gray-700 rounded-lg overflow-hidden bg-gray-800">
+            <div key={idx} className="border border-border rounded-lg overflow-hidden bg-card">
               <button
-                className="w-full text-left px-6 py-4 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:bg-gray-700 text-lg font-medium text-white transition-colors"
+                className="w-full text-left px-6 py-4 bg-card hover:bg-accent focus:outline-none focus:bg-accent text-lg font-medium text-foreground transition-colors touch-button"
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
                 aria-expanded={openIndex === idx}
               >
                 {faq.question}
               </button>
               {openIndex === idx && (
-                <div className="px-6 py-4 bg-gray-900 text-gray-300 border-t border-gray-700">
+                <div className="px-6 py-4 bg-muted text-muted-foreground border-t border-border">
                   {faq.answer}
                 </div>
               )}

@@ -9,39 +9,40 @@ import { Footer } from "@/components/footer"
 import { CarCard } from "@/components/car-card"
 import { SmartSearch } from "@/components/smart-search"
 import { FilterPanel } from "@/components/filter-panel"
-import { CarComparison } from "@/components/car-comparison"
-import { WhatsAppButton } from "@/components/whatsapp-button"
-import { getAllCars } from "@/lib/firebase/server"
+
+
+// Firebase server functions removed
 import type { Car } from "@/lib/types"
-import { useAuth } from "@/lib/auth-context"
 import { LoadingSpinner } from "@/components/loading-spinner"
+import { supabasePublic } from "@/lib/supabase/client"
+import Script from 'next/script'
 
 export default function BrowsePage() {
   const [allCars, setAllCars] = useState<Car[]>([])
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<string>("featured")
-  const { loading: authLoading, isFirebaseAvailable } = useAuth()
   const [dataLoading, setDataLoading] = useState(true)
 
   useEffect(() => {
-    if (!authLoading && isFirebaseAvailable) {
-      const fetchCars = async () => {
-        try {
-          const carsFromDb = await getAllCars()
-          setAllCars(carsFromDb.filter((car: any) => car.approved !== false))
-        } catch (err: unknown) {
-          const errorMessage = err instanceof Error ? err.message : "Failed to load cars."
-          setError(errorMessage)
-        } finally {
-          setDataLoading(false)
-        }
+    const fetchCars = async () => {
+      try {
+        const { data, error } = await supabasePublic
+          .from('cars')
+          .select('*')
+          .eq('approved', true)
+          .order('listed_at', { ascending: false })
+        if (error) throw error
+        setAllCars((data || []) as unknown as Car[])
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to load cars."
+        if (process.env.NODE_ENV !== 'production') console.error('Browse load error:', errorMessage)
+        setError(errorMessage)
+      } finally {
+        setDataLoading(false)
       }
-      fetchCars()
-    } else if (!authLoading && !isFirebaseAvailable) {
-      setError("Firebase is not configured. Cannot load cars.")
-      setDataLoading(false)
     }
-  }, [authLoading, isFirebaseAvailable])
+    fetchCars()
+  }, [])
   
   const sortedCars = useMemo(() => {
     const carsToSort = [...allCars];
@@ -63,16 +64,33 @@ export default function BrowsePage() {
     }
   }, [allCars, sortBy]);
 
-  const isLoading = authLoading || dataLoading;
+  const isLoading = dataLoading;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <Script
+          id="browse-jsonld"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              itemListElement: sortedCars.map((car, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                url: `${typeof window !== 'undefined' ? window.location.origin : ''}/car/${car.id}`,
+                name: car.title,
+              })),
+            }),
+          }}
+        />
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold">Browse Our Cars</h1>
-          <p className="text-lg text-gray-600">Discover quality pre-owned vehicles.</p>
+          <p className="text-lg text-muted-foreground">Discover quality pre-owned vehicles.</p>
         </div>
 
         <div className="mb-8">
@@ -89,7 +107,7 @@ export default function BrowsePage() {
                <select 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="px-4 py-2 border border-border rounded-lg bg-background text-foreground"
               >
                 <option value="featured">Sort by: Featured</option>
                 <option value="price-low-high">Price: Low to High</option>
@@ -118,8 +136,6 @@ export default function BrowsePage() {
         </div>
       </div>
       
-      <CarComparison availableCars={allCars} />
-      <WhatsAppButton />
       <Footer />
     </div>
   )

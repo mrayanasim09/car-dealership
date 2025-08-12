@@ -16,23 +16,25 @@ export function SearchSection() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     // Handle search logic here
-    console.log("Search:", { searchTerm, make, model, year, priceRange })
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Search:", { searchTerm, make, model, year, priceRange })
+    }
   }
 
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 20 }, (_, i) => currentYear - i)
 
   return (
-    <section className="py-8 md:py-12 bg-gray-900">
+    <section className="py-8 md:py-12 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
               Find Your Perfect Vehicle
             </h2>
-            <p className="text-gray-300 max-w-2xl mx-auto">
-              Use our advanced search to find the exact vehicle you're looking for
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Use our advanced search to find the exact vehicle you&apos;re looking for
             </p>
           </div>
 
@@ -41,22 +43,22 @@ export function SearchSection() {
             {/* Quick Search - Mobile Optimized */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <Search className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               </div>
               <Input
                 type="text"
                 placeholder="Search for make, model, or keywords..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-4 bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-red-500 focus:ring-red-500"
+                className="pl-12 pr-4 py-4 bg-background border-border text-foreground placeholder-muted-foreground focus:border-red-500 focus:ring-red-500"
                 aria-label="Search vehicles"
               />
             </div>
 
             {/* Advanced Filters - Collapsible on Mobile */}
-            <div className="bg-gray-800 rounded-lg p-4 md:p-6">
+            <div className="bg-card rounded-lg p-4 md:p-6 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white flex items-center">
+                <h3 className="text-lg font-semibold text-foreground flex items-center">
                   <Filter className="w-5 h-5 mr-2" aria-hidden="true" />
                   Advanced Filters
                 </h3>
@@ -66,14 +68,14 @@ export function SearchSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Make */}
                 <div>
-                  <label htmlFor="make" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="make" className="block text-sm font-medium text-muted-foreground mb-2">
                     Make
                   </label>
                   <Select value={make} onValueChange={setMake}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue placeholder="Select make" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-background border-border">
                       <SelectItem value="honda">Honda</SelectItem>
                       <SelectItem value="toyota">Toyota</SelectItem>
                       <SelectItem value="ford">Ford</SelectItem>
@@ -88,14 +90,14 @@ export function SearchSection() {
 
                 {/* Model */}
                 <div>
-                  <label htmlFor="model" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="model" className="block text-sm font-medium text-muted-foreground mb-2">
                     Model
                   </label>
                   <Select value={model} onValueChange={setModel}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue placeholder="Select model" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-background border-border">
                       <SelectItem value="civic">Civic</SelectItem>
                       <SelectItem value="accord">Accord</SelectItem>
                       <SelectItem value="camry">Camry</SelectItem>
@@ -110,14 +112,14 @@ export function SearchSection() {
 
                 {/* Year */}
                 <div>
-                  <label htmlFor="year" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="year" className="block text-sm font-medium text-muted-foreground mb-2">
                     Year
                   </label>
                   <Select value={year} onValueChange={setYear}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600 max-h-60">
+                    <SelectContent className="bg-background border-border max-h-60">
                       {years.map((year) => (
                         <SelectItem key={year} value={year.toString()}>
                           {year}
@@ -129,14 +131,14 @@ export function SearchSection() {
 
                 {/* Price Range */}
                 <div>
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="price" className="block text-sm font-medium text-muted-foreground mb-2">
                     Price Range
                   </label>
                   <Select value={priceRange} onValueChange={setPriceRange}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue placeholder="Select price" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-background border-border">
                       <SelectItem value="0-10000">Under $10,000</SelectItem>
                       <SelectItem value="10000-20000">$10,000 - $20,000</SelectItem>
                       <SelectItem value="20000-30000">$20,000 - $30,000</SelectItem>
@@ -161,7 +163,7 @@ export function SearchSection() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700 py-3 px-6 rounded-lg font-semibold transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50"
+                  className="flex-1 border-border text-muted-foreground hover:bg-accent py-3 px-6 rounded-lg font-semibold transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50"
                   onClick={() => {
                     setSearchTerm("")
                     setMake("")
@@ -178,51 +180,27 @@ export function SearchSection() {
           </form>
 
           {/* Quick Links - Mobile Optimized */}
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button
-              variant="ghost"
-              className="flex flex-col items-center p-4 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-all duration-300"
-              aria-label="View all Honda vehicles"
-            >
-              <div className="text-2xl mb-2">🚗</div>
-              <span className="text-sm font-medium">Honda</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className="flex flex-col items-center p-4 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-all duration-300"
-              aria-label="View all Toyota vehicles"
-            >
-              <div className="text-2xl mb-2">🚙</div>
-              <span className="text-sm font-medium">Toyota</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className="flex flex-col items-center p-4 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-all duration-300"
-              aria-label="View all Ford vehicles"
-            >
-              <div className="text-2xl mb-2">🚐</div>
-              <span className="text-sm font-medium">Ford</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className="flex flex-col items-center p-4 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-all duration-300"
-              aria-label="View all luxury vehicles"
-            >
-              <div className="text-2xl mb-2">🏎️</div>
-              <span className="text-sm font-medium">Luxury</span>
-            </Button>
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {['Honda','Toyota','Ford','Luxury'].map((label) => (
+              <Button
+                key={label}
+                variant="ghost"
+                className="flex flex-col items-center p-4 bg-card hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg transition-all duration-300"
+                aria-label={`View all ${label} vehicles`}
+              >
+                <div className="mb-2 w-8 h-8 rounded-full bg-muted" aria-hidden="true" />
+                <span className="text-sm font-medium">{label}</span>
+              </Button>
+            ))}
           </div>
 
           {/* Location Info - Mobile Optimized */}
           <div className="mt-8 text-center">
-            <div className="flex items-center justify-center text-gray-400 mb-2">
+            <div className="flex items-center justify-center text-muted-foreground mb-2">
               <MapPin className="w-4 h-4 mr-2" aria-hidden="true" />
               <span className="text-sm">Serving Southern California</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Visit our showroom at 12440 Firestone Blvd, Suite 3025D, Norwalk, CA 90650
             </p>
           </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { authManager } from '@/lib/auth-utils'
+import { createRateLimitMiddleware, rateLimiters } from '@/lib/security/rate-limiter'
+// legacy login endpoint not used
 
 // Input validation schema
 const loginSchema = z.object({
@@ -8,43 +9,12 @@ const loginSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters').max(100)
 })
 
-// Rate limiting store (in production, use Redis)
-const loginAttempts = new Map<string, { count: number; resetTime: number }>()
-
-function checkLoginRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const windowMs = 15 * 60 * 1000 // 15 minutes
-  const maxAttempts = 5
-
-  const record = loginAttempts.get(ip)
-  
-  if (!record || now > record.resetTime) {
-    loginAttempts.set(ip, {
-      count: 1,
-      resetTime: now + windowMs
-    })
-    return true
-  }
-
-  if (record.count >= maxAttempts) {
-    return false
-  }
-
-  record.count++
-  return true
-}
+const guard = createRateLimitMiddleware(rateLimiters.adminLogin)
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    
-    // Check rate limiting
-    if (!checkLoginRateLimit(ip)) {
-      return NextResponse.json(
-        { error: 'Too many login attempts. Please try again later.' },
-        { status: 429 }
-      )
-    }
+    const blocked = await guard(request)
+    if (blocked) return blocked
 
     // Parse and validate request body
     const body = await request.json()
@@ -57,41 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, password } = validationResult.data
-
-    // Sanitize inputs
-    const sanitizedEmail = email.toLowerCase().trim()
-    
-    // Attempt login
-    const user = await authManager.authenticateAdmin(sanitizedEmail, password)
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      )
-    }
-    
-    // Create response with session cookie
-    const response = NextResponse.json({
-      success: true,
-      user: {
-        email: user.email,
-        role: user.role
-      }
-    })
-
-    // Set JWT token in HTTP-only cookie
-    const token = authManager.createAuthToken(user)
-    response.cookies.set('am_tycoons_admin_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60, // 24 hours
-      path: '/'
-    })
-
-    return response
+    return NextResponse.json({ error: 'Use /api/admin/login-start' }, { status: 400 })
 
   } catch (error) {
     console.error('Login API error:', error)

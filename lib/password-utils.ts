@@ -1,95 +1,70 @@
 import bcrypt from 'bcryptjs'
-import { config } from './config'
 
-export class PasswordManager {
-  private static instance: PasswordManager
+// Hash a password
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12
+  return bcrypt.hash(password, saltRounds)
+}
 
-  static getInstance(): PasswordManager {
-    if (!PasswordManager.instance) {
-      PasswordManager.instance = new PasswordManager()
-    }
-    return PasswordManager.instance
-  }
-
-  async hashPassword(password: string): Promise<string> {
-    try {
-      // Validate password strength
-      this.validatePassword(password)
-      
-      // Hash password with configured rounds
-      const hashedPassword = await bcrypt.hash(password, config.bcrypt.rounds)
-      
-      return hashedPassword
-    } catch (error) {
-      console.error('Error hashing password:', error)
-      throw new Error('Failed to hash password')
-    }
-  }
-
-  async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-    try {
-      const isValid = await bcrypt.compare(password, hashedPassword)
-      return isValid
-    } catch (error) {
-      console.error('Error verifying password:', error)
-      return false
-    }
-  }
-
-  private validatePassword(password: string): void {
-    const minLength = 8
-    const hasUpperCase = /[A-Z]/.test(password)
-    const hasLowerCase = /[a-z]/.test(password)
-    const hasNumbers = /\d/.test(password)
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password)
-
-    const errors: string[] = []
-
-    if (password.length < minLength) {
-      errors.push(`Password must be at least ${minLength} characters long`)
-    }
-    if (!hasUpperCase) {
-      errors.push('Password must contain at least one uppercase letter')
-    }
-    if (!hasLowerCase) {
-      errors.push('Password must contain at least one lowercase letter')
-    }
-    if (!hasNumbers) {
-      errors.push('Password must contain at least one number')
-    }
-    if (!hasSpecialChar) {
-      errors.push('Password must contain at least one special character')
-    }
-
-    if (errors.length > 0) {
-      throw new Error(`Password validation failed: ${errors.join(', ')}`)
-    }
-  }
-
-  generateSecurePassword(): string {
-    const length = 16
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
-    let password = ''
-    
-    // Ensure at least one character from each category
-    password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)] // uppercase
-    password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)] // lowercase
-    password += '0123456789'[Math.floor(Math.random() * 10)] // number
-    password += '!@#$%^&*'[Math.floor(Math.random() * 8)] // special char
-    
-    // Fill the rest randomly
-    for (let i = 4; i < length; i++) {
-      password += charset[Math.floor(Math.random() * charset.length)]
-    }
-    
-    // Shuffle the password
-    return password.split('').sort(() => Math.random() - 0.5).join('')
-  }
-
-  async hashDefaultPassword(): Promise<string> {
-    const defaultPassword = 'Admin@123456'
-    return await this.hashPassword(defaultPassword)
+// Verify a password against a hash
+export async function verifyPasswordHash(password: string, hash: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(password, hash)
+  } catch (error) {
+    console.error('Error verifying password:', error)
+    return false
   }
 }
 
-export const passwordManager = PasswordManager.getInstance()
+// Generate a secure random password
+export function generateSecurePassword(length: number = 16): string {
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
+  let password = ''
+  
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length))
+  }
+  
+  return password
+}
+
+// Check password strength
+export function checkPasswordStrength(password: string): {
+  score: number
+  feedback: string[]
+  isStrong: boolean
+} {
+  const feedback: string[] = []
+  let score = 0
+  
+  // Length check
+  if (password.length >= 8) score += 1
+  else feedback.push('Password should be at least 8 characters long')
+  
+  if (password.length >= 12) score += 1
+  
+  // Character variety checks
+  if (/[a-z]/.test(password)) score += 1
+  else feedback.push('Include lowercase letters')
+  
+  if (/[A-Z]/.test(password)) score += 1
+  else feedback.push('Include uppercase letters')
+  
+  if (/\d/.test(password)) score += 1
+  else feedback.push('Include numbers')
+  
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1
+  else feedback.push('Include special characters')
+  
+  // Common patterns check
+  if (!/(.)\1{2,}/.test(password)) score += 1
+  else feedback.push('Avoid repeating characters')
+  
+  const isStrong = score >= 5
+  
+  return {
+    score,
+    feedback,
+    isStrong
+  }
+}

@@ -28,6 +28,8 @@ export function StarRating({ rating, size = "md", interactive = false, onRatingC
         disabled={!interactive}
         onClick={() => interactive && onRatingChange?.(starValue)}
         className={`${interactive ? "cursor-pointer hover:scale-110" : "cursor-default"} transition-transform`}
+        aria-label={`Rate ${starValue} star${starValue !== 1 ? 's' : ''}`}
+        aria-pressed={isFilled}
       >
         <Star
           className={`${sizeClasses[size]} ${

@@ -1,88 +1,120 @@
-/** @type {import('next').NextConfig} */
+import bundleAnalyzer from '@next/bundle-analyzer'
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Performance optimizations
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-hook-form', 'zod'],
-    serverComponentsExternalPackages: ['@prisma/client'],
-    // Fix for SSR issues with client-side libraries
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
+    // optimizeCss: true, // Disabled due to critters module issues
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-icons'],
   },
-  
-  // Image optimization
   images: {
-    domains: ['res.cloudinary.com', 'firebasestorage.googleapis.com'],
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 31536000, // 1 year
-    // Performance optimizations
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.blob.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    loader: 'default',
-    unoptimized: false,
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  
-
-  
-  // Headers for performance
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: '/(.*)',
         headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
+          // Content Security Policy
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://res.cloudinary.com; frame-src 'self' https://vercel.live;",
+            value: [
+              "default-src 'self'",
+              // Using nonces for inline scripts; Next can inject a nonce via middleware/headers if desired
+              "script-src 'self' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://apis.google.com https://www.google.com https://www.gstatic.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: https: blob: https://*.public.blob.vercel-storage.com https://www.google-analytics.com https://maps.gstatic.com https://*.googleusercontent.com",
+              "connect-src 'self' https://www.google-analytics.com https://vercel.live https://*.supabase.co wss://*.supabase.co https://www.google.com https://maps.googleapis.com",
+              "frame-src 'self' https://www.google.com https://*.google.com https://*.google.com/maps https://*.google.com/maps/embed",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "report-to csp-endpoint",
+              "upgrade-insecure-requests"
+            ].join('; ')
           },
-        ],
+          {
+            key: 'Report-To',
+            value: JSON.stringify({
+              group: 'csp-endpoint',
+              max_age: 10886400,
+              endpoints: [{ url: process.env.CSP_REPORT_URI || 'https://amtycoonsinc.com/api/csp-report' }]
+            })
+          },
+          // HTTP Strict Transport Security
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          },
+          // Cross-Origin Opener Policy
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin'
+          },
+          // Cross-Origin Resource Policy
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-origin'
+          },
+          // X-Content-Type-Options
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          // X-Frame-Options
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          // X-XSS-Protection
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          // Referrer Policy
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          // Permissions Policy
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+          }
+        ]
       },
-      // Performance headers for static assets
       {
-        source: '/fonts/(.*)',
+        source: '/api/(.*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/images/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: 'no-store, max-age=0',
           },
         ],
       },
@@ -97,51 +129,47 @@ const nextConfig = {
       },
     ]
   },
-  
-  // Redirects
-  async redirects() {
-    return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
-    ]
-  },
-  
-  // Rewrites
   async rewrites() {
-    return [
+    // Use static public/robots.txt
+    return []
+  },
+  // Optimize bundle size
+  webpack: (config, { dev, isServer }) => {
+    // Silence known harmless warning from @supabase/realtime-js dynamic import
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
       {
-        source: '/api/health',
-        destination: '/api/health-check',
-      },
+        module: /@supabase[\\/]realtime-js[\\/]/,
+        message: /Critical dependency: the request of a dependency is an expression/
+      }
     ]
+    if (!dev && !isServer) {
+      // Enable tree shaking
+      config.optimization.usedExports = true
+      config.optimization.sideEffects = false
+      
+      // Split chunks for better caching
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            enforce: true,
+          },
+        },
+      }
+    }
+    return config
   },
-  
-  // Compiler options
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-  
-  // Power by header
-  poweredByHeader: false,
-  
-  // Performance optimizations
+  // Enable compression
   compress: true,
-  productionBrowserSourceMaps: false,
-  trailingSlash: false,
-  swcMinify: true,
-  
-  // Environment variables
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
-  
-  // Temporarily disable ESLint during build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 }
-
-export default nextConfig
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' })
+export default withBundleAnalyzer(nextConfig)

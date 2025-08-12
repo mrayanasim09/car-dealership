@@ -34,32 +34,33 @@ export function Preloader() {
   if (!isLoading) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-white dark:bg-gray-900 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-background flex items-center justify-center">
       <div className="text-center">
-        {/* Logo */}
-        <div className="mb-8 animate-pulse">
+        {/* Logo - Clean and simple */}
+        <div className="mb-8">
           <Image
-            src="/AMTycons.png"
+            src="/optimized/am-tycoons-logo.png"
             alt="AM Tycoons Inc."
             width={200}
             height={80}
             className="mx-auto h-20 w-auto"
+            priority
           />
         </div>
 
-        {/* Loading Animation */}
+        {/* Loading Animation - Simple and clean */}
         <div className="relative mb-6">
-          <div className="w-16 h-16 mx-auto">
-            <div className="absolute inset-0 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
+            <div className="w-16 h-16 mx-auto">
+              <div className="absolute inset-0 border-4 border-border rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-64 mx-auto mb-4">
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-64 mx-auto mb-4">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-red-600 to-red-700 rounded-full transition-all duration-300 ease-out"
+                className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
@@ -67,22 +68,15 @@ export function Preloader() {
 
         {/* Loading Text */}
         <div className="space-y-2">
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="text-lg font-semibold text-foreground">
             Loading Your Perfect Drive
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             {progress < 30 && "Preparing inventory..."}
             {progress >= 30 && progress < 60 && "Loading vehicle details..."}
             {progress >= 60 && progress < 90 && "Optimizing experience..."}
             {progress >= 90 && "Almost ready!"}
           </p>
-        </div>
-
-        {/* Floating Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-red-600/5 rounded-full animate-float"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-red-500/5 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-red-400/5 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
         </div>
       </div>
     </div>

@@ -3,13 +3,14 @@
 import { useState, useMemo, useCallback } from "react"
 import { X, Plus, Scale, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { CloudinaryImage } from "@/components/cloudinary-image"
+import Image from "next/image"
 import { useComparison } from "@/lib/comparison-context"
 import type { Car } from "@/lib/types"
 import { StarRating } from "@/components/star-rating"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
 
 interface CarComparisonProps {
   availableCars: Car[]
@@ -55,12 +56,12 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
     })
   }, [availableCars, searchTerm, filterMake])
 
-  if (!isOpen) {
-    return (
+  return (
+    <>
       <Button
         onClick={() => setIsOpen(true)}
         variant="outline"
-        className="fixed bottom-20 right-6 z-40 bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl"
+        className={`fixed bottom-20 right-6 z-40 bg-card shadow-lg hover:shadow-xl ${isOpen ? 'hidden' : ''}`}
         aria-label={`Compare cars (${selectedCars.length} selected)`}
       >
         <Scale className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -71,39 +72,40 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
           </Badge>
         )}
       </Button>
-    )
-  }
 
-  return (
-    <div className="fixed inset-0 bg-black/40 z-[50] flex items-center justify-center p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="comparison-title">
-      <Card className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border-0">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle id="comparison-title" className="flex items-center">
-            <Scale className="h-5 w-5 mr-2" aria-hidden="true" />
-            Compare Cars ({selectedCars.length}/4)
-          </CardTitle>
-          <div className="flex gap-2">
-            {selectedCars.length > 0 && (
-              <Button variant="outline" size="sm" onClick={clearComparison} aria-label="Clear all cars from comparison">
-                Clear All
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={() => {
-              setIsOpen(false)
-              onClose?.()
-            }} aria-label="Close comparison dialog">
-              <X className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </div>
-        </CardHeader>
-        
-        <CardContent>
+      <Dialog open={isOpen} onOpenChange={(open) => {
+        setIsOpen(open)
+        if (!open) onClose?.()
+      }}>
+        <DialogContent className="w-full max-w-7xl max-h-[90vh] overflow-y-auto p-0">
+          <Card className="w-full border-0 shadow-none">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <DialogHeader>
+                <DialogTitle id="comparison-title" className="flex items-center">
+                  <Scale className="h-5 w-5 mr-2" aria-hidden="true" />
+                  Compare Cars ({selectedCars.length}/4)
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex gap-2">
+                {selectedCars.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={clearComparison} aria-label="Clear all cars from comparison">
+                    Clear All
+                  </Button>
+                )}
+                <DialogClose asChild>
+                  <Button variant="ghost" size="sm" aria-label="Close comparison dialog">
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </DialogClose>
+              </div>
+            </CardHeader>
+            <CardContent>
           {selectedCars.length === 0 ? (
             <div className="text-center py-8">
               <div className="mb-6">
-                <Scale className="h-16 w-16 mx-auto text-gray-400 mb-4" aria-hidden="true" />
+                <Scale className="h-16 w-16 mx-auto text-muted-foreground mb-4" aria-hidden="true" />
                 <h3 className="text-xl font-semibold mb-2">Compare Cars</h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                <p className="text-muted-foreground mb-6">
                   Select up to 4 cars to compare their features and specifications
                 </p>
               </div>
@@ -120,8 +122,8 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                     onKeyDown={(e) => e.key === 'Enter' && handleAddCar(car)}
                     aria-label={`Add ${car.title} to comparison`}
                   >
-                    <CloudinaryImage
-                      src={car.images[0] || "/placeholder.jpg"}
+                    <Image
+                      src={car.images[0] || "/optimized/placeholder.webp"}
                       alt={car.title}
                       width={200}
                       height={120}
@@ -129,7 +131,7 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                     />
                     <h4 className="font-semibold text-sm mb-1">{car.title}</h4>
                     <p className="text-red-600 font-bold text-sm">{formatPrice(car.price)}</p>
-                    <p className="text-gray-500 text-xs">{car.year} • {formatMileage(car.mileage)} mi</p>
+                    <p className="text-muted-foreground text-xs">{car.year} • {formatMileage(car.mileage)} mi</p>
                   </div>
                 ))}
               </div>
@@ -157,16 +159,17 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                     >
                       <X className="h-3 w-3" aria-hidden="true" />
                     </button>
-                    <CloudinaryImage
+                    <Image
                       src={car.images[0] || "/placeholder.svg"}
                       alt={`${car.title} - ${car.year} ${car.make} ${car.model}`}
                       width={300}
                       height={200}
                       className="w-full h-32 object-cover rounded-lg mb-3"
+                      unoptimized
                     />
                     <h3 className="font-bold text-sm mb-1">{car.title}</h3>
                     <p className="text-red-600 font-bold text-lg">{formatPrice(car.price)}</p>
-                    <p className="text-gray-500 text-xs">{car.year} • {formatMileage(car.mileage)} mi</p>
+                    <p className="text-muted-foreground text-xs">{car.year} • {formatMileage(car.mileage)} mi</p>
                   </div>
                 ))}
                 
@@ -175,7 +178,7 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                     <Button
                       variant="ghost"
                       onClick={() => setShowCarSelector(true)}
-                      className="text-gray-500 flex flex-col items-center"
+                      className="text-muted-foreground flex flex-col items-center"
                       aria-label="Add another car to comparison"
                     >
                       <Plus className="h-8 w-8 mb-2" aria-hidden="true" />
@@ -189,17 +192,18 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
               <div className="overflow-x-auto border rounded-lg">
                 <table className="w-full border-collapse" role="table" aria-label="Car comparison table">
                   <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-800">
+                    <tr className="bg-accent">
                       <th className="text-left p-4 font-semibold border-b" scope="col">Feature</th>
                       {selectedCars.map((car) => (
                         <th key={car.id} className="text-center p-4 font-semibold border-b min-w-[200px]" scope="col">
                           <div className="flex flex-col items-center">
-                            <CloudinaryImage
-                              src={car.images[0] || "/placeholder.svg"}
+                     <Image
+                       src={car.images[0] || "/optimized/placeholder.webp"}
                               alt={`${car.title} - ${car.year} ${car.make} ${car.model}`}
                               width={120}
                               height={90}
                               className="w-28 h-20 object-cover rounded-lg mb-2 shadow"
+                       priority={false}
                             />
                             <span className="text-sm font-medium">{car.make} {car.model}</span>
                           </div>
@@ -209,7 +213,7 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                   </thead>
                   <tbody>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Price</td>
+                      <td className="p-4 font-medium bg-accent">Price</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center font-bold text-red-600">
                           {formatPrice(car.price)}
@@ -217,25 +221,25 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Year</td>
+                      <td className="p-4 font-medium bg-accent">Year</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">{car.year}</td>
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Mileage</td>
+                      <td className="p-4 font-medium bg-accent">Mileage</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">{formatMileage(car.mileage)} mi</td>
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Location</td>
+                      <td className="p-4 font-medium bg-accent">Location</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">{car.location}</td>
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">User Rating</td>
+                      <td className="p-4 font-medium bg-accent">User Rating</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">
                           <StarRating rating={car.rating || 0} size="sm" interactive={false} />
@@ -243,7 +247,7 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                       ))}
                     </tr>
                     <tr className="border-b">
-                      <td className="p-4 font-medium bg-gray-50 dark:bg-gray-800">Status</td>
+                      <td className="p-4 font-medium bg-accent">Status</td>
                       {selectedCars.map((car) => (
                         <td key={car.id} className="p-4 text-center">
                           <Badge variant={car.approved ? 'default' : 'secondary'}>
@@ -267,20 +271,25 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </DialogContent>
+      </Dialog>
 
       {/* Car Selection Modal */}
-      {showCarSelector && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="car-selector-title">
-          <Card className="w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+      <Dialog open={showCarSelector} onOpenChange={setShowCarSelector}>
+        <DialogContent className="w-full max-w-4xl max-h-[80vh] overflow-y-auto p-0">
+          <Card className="w-full border-0 shadow-none">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle id="car-selector-title">Select Cars to Compare</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowCarSelector(false)} aria-label="Close car selector">
-                <X className="h-4 w-4" aria-hidden="true" />
-              </Button>
+              <DialogHeader>
+                <DialogTitle id="car-selector-title">Select Cars to Compare</DialogTitle>
+              </DialogHeader>
+              <DialogClose asChild>
+                <Button variant="ghost" size="sm" aria-label="Close car selector">
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </DialogClose>
             </CardHeader>
-            
             <CardContent>
               {/* Search and Filter */}
               <div className="flex gap-4 mb-6">
@@ -325,12 +334,13 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                     onKeyDown={(e) => e.key === 'Enter' && handleAddCar(car)}
                     aria-label={`Add ${car.title} to comparison`}
                   >
-                    <CloudinaryImage
-                      src={car.images[0] || "/placeholder.svg"}
+                    <Image
+                      src={car.images[0] || "/optimized/placeholder.webp"}
                       alt={`${car.title} - ${car.year} ${car.make} ${car.model}`}
                       width={200}
                       height={120}
                       className="w-full h-24 object-cover rounded mb-3"
+                      priority={false}
                     />
                     <h4 className="font-semibold text-sm mb-1">{car.title}</h4>
                     <p className="text-red-600 font-bold text-sm">{formatPrice(car.price)}</p>
@@ -341,15 +351,15 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
               </div>
 
               {filteredCars.filter(car => !selectedCars.find(selected => selected.id === car.id)).length === 0 && (
-                <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                   No cars found matching your criteria
                 </div>
               )}
             </CardContent>
           </Card>
-        </div>
-      )}
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

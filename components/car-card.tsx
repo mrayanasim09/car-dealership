@@ -5,19 +5,16 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CloudinaryImage } from "@/components/cloudinary-image"
 import Image from "next/image"
 import { 
-  Heart, 
   Share2, 
   Car as CarIcon, 
   MapPin, 
-  Calendar,
-  Phone
+  Calendar
 } from "lucide-react"
 import type { Car } from "@/lib/types"
 import { useComparison } from "@/lib/comparison-context"
-import { StarRating } from "@/components/star-rating"
+// StarRating import removed as it's not used
 
 interface CarCardProps {
   car: Car
@@ -25,41 +22,39 @@ interface CarCardProps {
 }
 
 export const CarCard = memo(function CarCard({ car, showCompareButton = false }: CarCardProps) {
-  const [isInterested, setIsInterested] = useState(false)
   const { addToComparison, removeFromComparison, isInComparison } = useComparison()
-  const [userRating, setUserRating] = useState<number>(() => {
-    if (typeof window !== "undefined") {
+  const [userRating] = useState<number>(() => {
+    if (typeof window !== "undefined" && car?.id) {
       const saved = localStorage.getItem(`car-rating-${car.id}`)
       return saved ? Number(saved) : car.rating || 0
     }
-    return car.rating || 0
+    return car?.rating || 0
   })
-  const [averageRating, setAverageRating] = useState<number>(() => {
-    if (typeof window !== "undefined") {
+  const [, setAverageRating] = useState<number>(() => {
+    if (typeof window !== "undefined" && car?.id) {
       const saved = localStorage.getItem(`car-rating-${car.id}`)
       return saved ? Number(saved) : car.rating || 0
     }
-    return car.rating || 0
+    return car?.rating || 0
   })
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && car?.id) {
       localStorage.setItem(`car-rating-${car.id}`, String(userRating))
       setAverageRating(Number(localStorage.getItem(`car-rating-${car.id}`)) || userRating)
     }
-  }, [userRating, car.id])
+  }, [userRating, car?.id])
 
   const handleCompareToggle = useCallback(() => {
+    if (!car?.id) return
     if (isInComparison(car.id)) {
       removeFromComparison(car.id)
     } else {
       addToComparison(car)
     }
-  }, [isInComparison, car.id, removeFromComparison, addToComparison, car])
+  }, [isInComparison, removeFromComparison, addToComparison, car])
 
-  const handleCall = useCallback(() => {
-    window.open(`tel:+14243030386`, '_self')
-  }, [])
+  // no-op placeholder removed
 
   const formatPrice = useCallback((price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -69,58 +64,49 @@ export const CarCard = memo(function CarCard({ car, showCompareButton = false }:
     }).format(price)
   }, [])
 
+  // Add safety checks for car data
+  if (!car || !car.id) {
+    console.error('CarCard: Invalid car data received:', car)
+    return null
+  }
+
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-      <Link href={`/car/${car.id}`} className="block">
-        <div className="relative">
-          {car.images[0] && car.images[0].startsWith("/") ? (
+    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden bg-card border border-border touch-card">
+      <Link href={`/car/${car.id}`} className="block" aria-label={`View details for ${car.title}`}>
+        <div className="relative aspect-video">
+          {car.images && car.images[0] && typeof car.images[0] === 'string' && car.images[0].startsWith("/") ? (
             <Image
-              src={car.images[0]}
-              alt={car.title}
-              width={400}
-              height={300}
-              className="w-full h-32 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-              priority={false}
+              src={car.images[0] as string}
+              alt={`${car.title || 'Car'} - ${car.year || 'N/A'} ${car.make || 'N/A'} ${car.model || 'N/A'}`}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
           ) : (
-            <CloudinaryImage
-              src={car.images[0] || "/placeholder.jpg"}
-              alt={car.title}
-              width={400}
-              height={300}
-              className="w-full h-32 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            <Image
+              src={car.images && car.images[0] ? (car.images[0] as string) : "/optimized/placeholder.webp"}
+              alt={`${car.title || 'Car'} - ${car.year || 'N/A'} ${car.make || 'N/A'} ${car.model || 'N/A'}`}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           )}
-          
+
           {/* Price Badge */}
-          <Badge className="absolute top-2 left-2 bg-red-600 text-white font-bold text-sm">
-            {formatPrice(car.price)}
+          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground font-bold text-sm" aria-label={`Price: ${formatPrice(car.price || 0)}`}>
+            {formatPrice(car.price || 0)}
           </Badge>
-          
+
           {/* Featured Badge */}
           {car.isFeatured && (
-            <Badge className="absolute top-2 right-2 bg-yellow-500 text-white font-bold text-xs">
+            <Badge className="absolute top-2 right-2 bg-yellow-500 text-white font-bold text-xs" aria-label="Featured vehicle">
               Featured
             </Badge>
           )}
-          
-          {/* Interest Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-2 min-h-[44px] min-w-[44px] touch-manipulation"
-            onClick={(e) => {
-              e.preventDefault()
-              setIsInterested(!isInterested)
-            }}
-            aria-label={isInterested ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Heart className={`h-5 w-5 ${isInterested ? 'fill-red-500 text-red-500' : ''}`} aria-hidden="true" />
-          </Button>
         </div>
       </Link>
 
@@ -129,38 +115,32 @@ export const CarCard = memo(function CarCard({ car, showCompareButton = false }:
           {/* Title and Basic Info */}
           <div>
             <h3 className="font-semibold text-lg line-clamp-2 mb-2">
-              <Link href={`/car/${car.id}`} className="hover:text-red-600 transition-colors">
-                {car.title}
+              <Link href={`/car/${car.id}`} className="hover:text-primary transition-colors" aria-label={`View details for ${car.title || 'Car'}`}>
+                {car.title || 'Untitled Vehicle'}
               </Link>
             </h3>
             
             {/* Car Details - Single Line for Mobile */}
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-3">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
+            <div className="flex items-center justify-between text-sm text-muted-foreground mb-3" role="list" aria-label="Vehicle specifications">
+              <div className="flex items-center gap-1" role="listitem">
+                <Calendar className="h-3 w-3" aria-hidden="true" />
                 <span>{car.year}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <CarIcon className="h-3 w-3" />
+              <div className="flex items-center gap-1" role="listitem">
+                <CarIcon className="h-3 w-3" aria-hidden="true" />
                 <span>{car.mileage.toLocaleString()} mi</span>
               </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
+              <div className="flex items-center gap-1" role="listitem">
+                <MapPin className="h-3 w-3" aria-hidden="true" />
                 <span className="truncate max-w-[80px]">{car.location}</span>
               </div>
             </div>
           </div>
 
-          {/* Rating Display */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <StarRating rating={userRating} interactive={true} onRatingChange={setUserRating} />
-              <span className="text-sm text-gray-600 dark:text-gray-300">{averageRating.toFixed(1)} / 5</span>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-500 dark:text-gray-400">Performance</div>
-              <div className="text-lg font-bold text-green-600">95</div>
-            </div>
+          {/* Simple metadata row */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+            <span>{car.make} {car.model}</span>
+            <span>{car.year}</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             {showCompareButton && (
@@ -173,7 +153,8 @@ export const CarCard = memo(function CarCard({ car, showCompareButton = false }:
                     ? 'bg-blue-50 border-blue-200 text-blue-700' 
                     : ''
                 }`}
-                aria-label={isInComparison(car.id) ? 'Remove from comparison' : 'Add to comparison'}
+                aria-label={isInComparison(car.id) ? `Remove ${car.title} from comparison` : `Add ${car.title} to comparison`}
+                aria-pressed={isInComparison(car.id)}
               >
                 <Share2 className="h-4 w-4 mr-1" aria-hidden="true" />
                 <span className="hidden sm:inline">
@@ -184,16 +165,11 @@ export const CarCard = memo(function CarCard({ car, showCompareButton = false }:
                 </span>
               </Button>
             )}
-            <Button
-              onClick={handleCall}
-              size="sm"
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-3 min-h-[48px] touch-manipulation"
-              aria-label="Call dealership"
-            >
-              <Phone className="h-4 w-4 mr-1" aria-hidden="true" />
-              <span className="hidden sm:inline">Call</span>
-              <span className="sm:hidden">Call</span>
-            </Button>
+            <Link href={`/car/${car.id}`} className="flex-1">
+              <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-3 min-h-[48px] touch-manipulation" aria-label={`See full details for ${car.title}`}>
+                See Full Details
+              </Button>
+            </Link>
           </div>
         </div>
       </CardContent>

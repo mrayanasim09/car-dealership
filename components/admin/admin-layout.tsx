@@ -7,33 +7,29 @@ import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
-import { signOut } from "firebase/auth"
-import { auth } from "@/lib/firebase"
 import Image from "next/image"
-import { LayoutDashboard, Car, MessageSquare, BarChart3, LogOut, Menu, X, Home } from "lucide-react"
+import { BrandName } from "@/components/brand-name"
+import { LayoutDashboard, Car, LogOut, Menu, X, Home } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const { user, isFirebaseAvailable } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const navigation = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Car Management", href: "/admin", icon: Car },
-    { name: "Messages", href: "/admin/messages", icon: MessageSquare },
-    { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+    { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    { name: "Car Management", href: "/admin/dashboard", icon: Car },
   ]
 
   const handleLogout = async () => {
     try {
-      if (auth && isFirebaseAvailable) {
-        await signOut(auth)
-      }
+      // Stateless logout handled server-side; clear any local flags
       router.push("/")
     } catch (error) {
       console.error("Error signing out:", error)
@@ -42,17 +38,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground touch-pan-y lg:grid lg:grid-cols-[16rem_1fr]">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? "block" : "hidden"}`}>
-        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}></div>
-        <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg">
-          <div className="flex items-center justify-between p-4 border-b">
+        <div className="fixed inset-0 bg-background/50" onClick={() => setSidebarOpen(false)}></div>
+        <div className="fixed inset-y-0 left-0 w-64 bg-background shadow-lg border-r border-border">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center space-x-2">
               {/* Logo Image - Same as navbar for consistency */}
               <div className="relative w-12 h-8">
                 <Image
-                  src="/AMTycons_logo_transparent.png"
+                  src="/optimized/am-tycoons-logo.png"
                   alt="AM Tycoons Inc. Logo"
                   fill
                   className="object-contain"
@@ -61,8 +57,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 />
               </div>
               <div className="hidden sm:block">
-                <div className="text-sm font-bold text-gray-900">AM TYCOONS INC.</div>
-                <div className="text-xs text-gray-500">FIND YOUR PERFECT DRIVE</div>
+                 <div className="text-sm font-bold text-foreground"><BrandName /></div>
+                 <div className="text-xs text-muted-foreground">FIND YOUR PERFECT DRIVE</div>
               </div>
             </div>
             <Button onClick={() => setSidebarOpen(false)} variant="ghost" size="sm">
@@ -78,8 +74,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        isActive ? "bg-red-100 text-red-700" : "text-gray-700 hover:bg-gray-100"
+                       className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent"
                       }`}
                       onClick={() => setSidebarOpen(false)}
                     >
@@ -95,14 +91,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:block">
-        <div className="flex flex-col h-full bg-white shadow-lg">
-          <div className="flex items-center px-6 py-4 border-b">
+         <div className="hidden lg:block lg:col-start-1 lg:row-span-full lg:w-64">
+          <div className="flex flex-col h-full bg-background text-foreground shadow-lg border-r border-border">
+          <div className="flex items-center px-6 py-4 border-b border-border">
             <div className="flex items-center space-x-3">
               {/* Logo Image - Same as navbar for consistency */}
               <div className="relative w-16 h-10">
                 <Image
-                  src="/AMTycons_logo_transparent.png"
+                  src="/optimized/am-tycoons-logo.png"
                   alt="AM Tycoons Inc. Logo"
                   fill
                   className="object-contain"
@@ -111,8 +107,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 />
               </div>
               <div>
-                <div className="text-sm font-bold text-gray-900">AM TYCOONS INC.</div>
-                <div className="text-xs text-gray-500">FIND YOUR PERFECT DRIVE</div>
+                 <div className="text-sm font-bold text-foreground"><BrandName /></div>
+                 <div className="text-xs text-muted-foreground">FIND YOUR PERFECT DRIVE</div>
               </div>
             </div>
           </div>
@@ -126,8 +122,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        isActive ? "bg-red-100 text-red-700" : "text-gray-700 hover:bg-gray-100"
+                       className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent"
                       }`}
                     >
                       <IconComponent className="h-4 w-4 mr-3" />
@@ -139,30 +135,34 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </ul>
           </nav>
 
-          <div className="p-4 border-t">
+           <div className="p-4 border-t border-border">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">{user?.email?.[0]?.toUpperCase() || "A"}</span>
+                 <span className="text-primary-foreground text-sm font-medium">{user?.email?.[0]?.toUpperCase() || "A"}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.email || "Demo User"}</p>
-                <p className="text-xs text-gray-500">Administrator</p>
+                  <p className="text-sm font-medium text-foreground truncate">{user?.email || "Admin"}</p>
+                 <p className="text-xs text-muted-foreground">Administrator</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Button onClick={() => router.push("/")} variant="outline" size="sm" className="w-full justify-start">
+               <div className="flex items-center justify-between">
+                 <span className="text-xs text-muted-foreground">Theme</span>
+                <ThemeToggle />
+              </div>
+               <Button onClick={() => router.push("/")} variant="outline" size="sm" className="w-full justify-start bg-transparent border-border text-muted-foreground">
                 <Home className="h-4 w-4 mr-2" />
                 View Site
               </Button>
-              <Button
+               <Button
                 onClick={handleLogout}
-                variant="outline"
+                 variant="outline"
                 size="sm"
-                className="w-full justify-start text-red-600 hover:text-red-700 bg-transparent"
+                 className="w-full justify-start text-primary bg-transparent border-border hover:bg-primary/10"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                {isFirebaseAvailable ? "Logout" : "Exit Admin"}
+                 Logout
               </Button>
             </div>
           </div>
@@ -170,22 +170,27 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
-        <div className="bg-white shadow-sm border-b lg:hidden">
+      <div className="lg:pl-0 lg:col-start-2">
+        {/* Top bar - improved mobile UX, sticky and larger touch targets */}
+        <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75 shadow-sm border-b border-border lg:hidden sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 py-3">
-            <Button onClick={() => setSidebarOpen(true)} variant="ghost" size="sm">
-              <Menu className="h-5 w-5" />
+            <Button onClick={() => setSidebarOpen(true)} variant="ghost" size="lg" className="h-11 w-11 p-0">
+              <Menu className="h-6 w-6" />
             </Button>
-            <h1 className="text-lg font-semibold">Admin Panel</h1>
-            <Button onClick={handleLogout} variant="ghost" size="sm">
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <h1 className="text-base font-semibold truncate">Admin</h1>
+            <div className="flex items-center space-x-1">
+              <ThemeToggle />
+              <Button onClick={handleLogout} variant="ghost" size="lg" className="h-11 w-11 p-0">
+                <LogOut className="h-6 w-6" />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Page content */}
-        <main className="p-6">{children}</main>
+        {/* Page content - center within content column on large screens */}
+        <main className="p-4 sm:p-6 bg-background max-w-7xl mx-auto lg:max-w-none lg:mx-0 lg:px-6 overflow-x-auto overscroll-y-contain [scrollbar-width:none] [-ms-overflow-style:none]">
+          {children}
+        </main>
       </div>
     </div>
   )

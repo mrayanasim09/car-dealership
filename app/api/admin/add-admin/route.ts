@@ -1,73 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore'
-import { initializeFirebase } from '@/lib/firebase'
+import { z } from 'zod'
+import bcrypt from 'bcryptjs'
+import { jwtManager } from '@/lib/jwt-utils'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { csrf } from '@/lib/security/csrf'
 
-interface AdminUser {
-  uid: string;
-  email: string;
-  role: 'admin' | 'super_admin';
-  permissions: string[];
-  lastLogin: Date;
-  isActive: boolean;
-  twoFactorEnabled: boolean;
-  failedLoginAttempts: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+const createSchema = z.object({
+  email: z.string().email().max(100),
+  password: z.string().min(8).max(100),
+  role: z.enum(['super_admin', 'admin', 'editor', 'viewer']).default('admin'),
+  permissions: z.array(z.string()).optional(),
+})
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, uid, role = 'admin' } = await request.json()
-
-    if (!email || !uid) {
-      return NextResponse.json({ error: 'Email and UID are required' }, { status: 400 })
+    if (!csrf.verify(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 })
+    }
+    // Require super_admin
+    const token = request.cookies.get('am_tycoons_admin_token')?.value
+    const result = token ? jwtManager.verifyAccessToken(token) : { isValid: false }
+    if (!result.isValid || !result.payload || result.payload.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Initialize Firebase
-    await initializeFirebase()
-    
-    // Get Firestore instance
-    const db = getFirestore()
-    
-    if (!db) {
-      return NextResponse.json({ error: 'Firebase not initialized' }, { status: 500 })
+    const body = await request.json()
+    const parsed = createSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid input', details: parsed.error.errors }, { status: 400 })
     }
 
-    // Create admin user document with the provided UID
-    const adminUser: AdminUser = {
-      uid: uid,
-      email: email,
-      role: role as 'admin' | 'super_admin',
-      permissions: role === 'super_admin' 
-        ? ['read', 'write', 'delete', 'manage_users', 'manage_settings']
-        : ['read', 'write'],
-      lastLogin: new Date(),
-      isActive: true,
-      twoFactorEnabled: false,
-      failedLoginAttempts: 0,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
+    const email = parsed.data.email.toLowerCase().trim()
 
-    // Check if admin already exists
-    const existingAdmin = await getDoc(doc(db, 'admins', adminUser.uid))
-    if (existingAdmin.exists()) {
+    // Ensure unique
+    const { data: existing, error: existErr } = await supabaseAdmin
+      .from('admin_users')
+      .select('id')
+      .eq('email', email)
+      .limit(1)
+    if (existErr) {
+      console.error('Supabase existing check error:', existErr)
+      return NextResponse.json({ error: 'Failed to create admin' }, { status: 500 })
+    }
+    if (existing && existing.length > 0) {
       return NextResponse.json({ error: 'Admin user already exists' }, { status: 409 })
     }
 
-    // Save to Firestore
-    await setDoc(doc(db, 'admins', adminUser.uid), adminUser)
+    const passwordHash = await bcrypt.hash(parsed.data.password, 12)
+    const { data: inserted, error: insErr } = await supabaseAdmin
+      .from('admin_users')
+      .insert({
+        email,
+        password_hash: passwordHash,
+        role: parsed.data.role,
+        permissions: parsed.data.permissions || [],
+        is_active: true,
+        email_verified: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select('id')
+      .limit(1)
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Admin user created successfully',
-      admin: adminUser 
-    })
+    if (insErr || !inserted || inserted.length === 0) {
+      console.error('Supabase insert admin error:', insErr)
+      return NextResponse.json({ error: 'Failed to create admin' }, { status: 500 })
+    }
 
+    return NextResponse.json({ success: true, id: inserted[0].id })
   } catch (error) {
-    console.error('Error creating admin user:', error)
-    return NextResponse.json({ 
-      error: 'Failed to create admin user' 
-    }, { status: 500 })
+    console.error('add-admin error:', error)
+    return NextResponse.json({ error: 'Failed to create admin' }, { status: 500 })
   }
 }

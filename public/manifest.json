@@ -12,46 +12,46 @@
   "categories": ["business", "automotive", "shopping"],
   "icons": [
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "any maskable"
     },
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "any maskable"
     },
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "72x72",
-      "type": "image/png"
+      "type": "image/webp"
     },
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "96x96",
-      "type": "image/png"
+      "type": "image/webp"
     },
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "128x128",
-      "type": "image/png"
+      "type": "image/webp"
     },
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "144x144",
-      "type": "image/png"
+      "type": "image/webp"
     },
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "152x152",
-      "type": "image/png"
+      "type": "image/webp"
     },
     {
-      "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
       "sizes": "384x384",
-      "type": "image/png"
+      "type": "image/webp"
     }
   ],
   "screenshots": [
@@ -76,7 +76,7 @@
       "url": "/browse",
       "icons": [
         {
-          "src": "/AMTycons_logo_transparent.png",
+      "src": "/optimized/am-tycoons-logo.png",
           "sizes": "96x96"
         }
       ]
@@ -88,7 +88,7 @@
       "url": "/contact",
       "icons": [
         {
-          "src": "/AMTycons_logo_transparent.png",
+          "src": "/optimized/am-tycoons-logo.png",
           "sizes": "96x96"
         }
       ]
@@ -100,7 +100,7 @@
       "url": "/about",
       "icons": [
         {
-          "src": "/AMTycons_logo_transparent.png",
+          "src": "/optimized/am-tycoons-logo.png",
           "sizes": "96x96"
         }
       ]

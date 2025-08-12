@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { submitContactForm } from '@/lib/firebase'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { createRateLimitMiddleware, rateLimiters } from '@/lib/security/rate-limiter'
+import { verifyRecaptcha } from '@/lib/security/recaptcha'
 
 // Input validation schema
 const contactSchema = z.object({
@@ -10,34 +12,11 @@ const contactSchema = z.object({
   message: z.string().min(10, 'Message too short').max(1000, 'Message too long'),
   carId: z.string().optional(),
   subject: z.string().optional(),
-  preferredContact: z.enum(['email', 'phone', 'whatsapp']).optional()
+  preferredContact: z.enum(['email', 'phone', 'whatsapp']).optional(),
+  recaptchaToken: z.string().optional(),
 })
 
-// Rate limiting store
-const contactAttempts = new Map<string, { count: number; resetTime: number }>()
-
-function checkContactRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const windowMs = 60 * 60 * 1000 // 1 hour
-  const maxAttempts = 5
-
-  const record = contactAttempts.get(ip)
-  
-  if (!record || now > record.resetTime) {
-    contactAttempts.set(ip, {
-      count: 1,
-      resetTime: now + windowMs
-    })
-    return true
-  }
-
-  if (record.count >= maxAttempts) {
-    return false
-  }
-
-  record.count++
-  return true
-}
+const guard = createRateLimitMiddleware(rateLimiters.contactForm)
 
 // Spam detection
 function detectSpam(data: Record<string, unknown>): boolean {
@@ -70,15 +49,9 @@ function sanitizeInput(input: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const blocked = await guard(request)
+    if (blocked) return blocked
     const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    
-    // Check rate limiting
-    if (!checkContactRateLimit(ip)) {
-      return NextResponse.json(
-        { error: 'Too many contact attempts. Please try again later.' },
-        { status: 429 }
-      )
-    }
 
     // Parse and validate request body
     const body = await request.json()
@@ -92,6 +65,16 @@ export async function POST(request: NextRequest) {
     }
 
     const contactData = validationResult.data
+
+    // Verify reCAPTCHA (v3)
+    const remoteIp = request.headers.get('x-forwarded-for') || request.ip || undefined
+    const recaptcha = await verifyRecaptcha(contactData.recaptchaToken, remoteIp, 'contact_form')
+    if (!recaptcha.success) {
+      return NextResponse.json(
+        { error: 'reCAPTCHA verification failed', details: recaptcha.errors, score: recaptcha.score },
+        { status: 400 }
+      )
+    }
 
     // Sanitize inputs
     const sanitizedData = {
@@ -122,15 +105,18 @@ export async function POST(request: NextRequest) {
       status: 'new'
     }
 
-    // Submit to database
+    // Submit to Supabase (messages table)
     try {
-      await submitContactForm({
-        name: contactWithMetadata.name,
-        email: contactWithMetadata.email,
-        phone: contactWithMetadata.phone,
-        subject: contactWithMetadata.subject || 'General Inquiry',
-        message: contactWithMetadata.message
-      })
+      const { error } = await supabaseAdmin
+        .from('messages')
+        .insert({
+          name: contactWithMetadata.name,
+          email: contactWithMetadata.email,
+          phone: contactWithMetadata.phone,
+          subject: contactWithMetadata.subject || 'General Inquiry',
+          message: contactWithMetadata.message,
+        })
+      if (error) throw error
     } catch (error) {
       console.error('Failed to submit contact form:', error)
       return NextResponse.json(

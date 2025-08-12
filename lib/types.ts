@@ -46,6 +46,104 @@ export interface Review {
   name: string
   comment: string
   stars: number
-  createdAt: any
+  createdAt: Date
+}
+
+// Admin role types and permissions
+export type AdminRole = 'super_admin' | 'admin' | 'editor' | 'viewer'
+
+export interface AdminPermissions {
+  // Car management
+  canCreateCars: boolean
+  canEditCars: boolean
+  canDeleteCars: boolean
+  canApproveCars: boolean
+  canFeatureCars: boolean
+  
+  // Review management
+  canModerateReviews: boolean
+  canDeleteReviews: boolean
+  
+  // User management
+  canManageAdmins: boolean
+  canViewAnalytics: boolean
+  
+  // System settings
+  canModifySettings: boolean
+  canAccessLogs: boolean
+}
+
+export interface Admin {
+  id: string
+  email: string
+  role: AdminRole
+  passwordHash: string
+  permissions: AdminPermissions
+  twoFactorEnabled?: boolean
+  twoFactorSecret?: string | null
+  backupCodes?: string[]
+  usedBackupCodes?: string[]
+  failedLoginAttempts?: number
+  lastLoginAt?: Date
+  lockedUntil?: Date | null
+  createdAt?: Date
+  updatedAt?: Date
+  createdBy?: string // ID of admin who created this admin
+}
+
+// Role permission presets
+export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermissions> = {
+  super_admin: {
+    canCreateCars: true,
+    canEditCars: true,
+    canDeleteCars: true,
+    canApproveCars: true,
+    canFeatureCars: true,
+    canModerateReviews: true,
+    canDeleteReviews: true,
+    canManageAdmins: true,
+    canViewAnalytics: false,
+    canModifySettings: true,
+    canAccessLogs: true,
+  },
+  admin: {
+    canCreateCars: true,
+    canEditCars: true,
+    canDeleteCars: false,
+    canApproveCars: true,
+    canFeatureCars: true,
+    canModerateReviews: true,
+    canDeleteReviews: false,
+    canManageAdmins: false,
+    canViewAnalytics: false,
+    canModifySettings: false,
+    canAccessLogs: false,
+  },
+  editor: {
+    canCreateCars: false,
+    canEditCars: true,
+    canDeleteCars: false,
+    canApproveCars: false,
+    canFeatureCars: false,
+    canModerateReviews: true,
+    canDeleteReviews: false,
+    canManageAdmins: false,
+    canViewAnalytics: false,
+    canModifySettings: false,
+    canAccessLogs: false,
+  },
+  viewer: {
+    canCreateCars: false,
+    canEditCars: false,
+    canDeleteCars: false,
+    canApproveCars: false,
+    canFeatureCars: false,
+    canModerateReviews: false,
+    canDeleteReviews: false,
+    canManageAdmins: false,
+    canViewAnalytics: false,
+    canModifySettings: false,
+    canAccessLogs: false,
+  },
 }
 

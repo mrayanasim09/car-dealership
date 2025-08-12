@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { authManager } from '@/lib/auth-utils'
-import { addCar, updateCar, deleteCar, getAllCars } from '@/lib/firebase'
+import { csrf } from '@/lib/security/csrf'
+import { createRateLimitMiddleware, rateLimiters } from '@/lib/security/rate-limiter'
 
 // Input validation schemas with stricter validation
 const carSchema = z.object({
@@ -21,6 +23,7 @@ const carSchema = z.object({
   fuelType: z.string().optional(),
   features: z.array(z.string()).optional(),
   images: z.array(z.string().url()).optional(),
+  documents: z.array(z.object({ name: z.string().max(200), url: z.string().url().max(1000) })).optional(),
   vin: z.string().optional(),
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
@@ -33,61 +36,26 @@ const updateCarSchema = carSchema.partial().extend({
   id: z.string().min(1, 'Car ID is required')
 })
 
-// Enhanced rate limiting with IP tracking
-const operationAttempts = new Map<string, { count: number; resetTime: number; blocked: boolean }>()
+// type CarInput = z.infer<typeof carSchema>
+type CarUpdateInput = z.infer<typeof updateCarSchema>
 
-function checkOperationRateLimit(ip: string, operation: string): boolean {
-  const now = Date.now()
-  const windowMs = 60 * 1000 // 1 minute
-  const maxAttempts = 10
-  const blockDuration = 5 * 60 * 1000 // 5 minutes
-
-  const key = `${ip}:${operation}`
-  const record = operationAttempts.get(key)
-  
-  if (!record || now > record.resetTime) {
-    operationAttempts.set(key, {
-      count: 1,
-      resetTime: now + windowMs,
-      blocked: false
-    })
-    return true
-  }
-
-  // Check if IP is blocked
-  if (record.blocked && now < record.resetTime + blockDuration) {
-    return false
-  }
-
-  if (record.count >= maxAttempts) {
-    record.blocked = true
-    record.resetTime = now + blockDuration
-    return false
-  }
-
-  record.count++
-  return true
-}
+const guard = createRateLimitMiddleware(rateLimiters.api)
 
 // GET - List cars (admin only)
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
     const user = await authManager.requireAdmin()
-    
-    // Check rate limiting
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    if (!checkOperationRateLimit(ip, 'list_cars')) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      )
-    }
+    const blocked = await guard(request)
+    if (blocked) return blocked
 
-    const cars = await getAllCars()
+    const { data: carsData, error } = await supabaseAdmin
+      .from('cars')
+      .select('*')
+      .order('listed_at', { ascending: false })
+    const cars = (error || !carsData) ? [] : carsData
     
     // Filter sensitive data for non-super admins
-    const filteredCars = user.role === 'admin' 
+    const filteredCars = user.role !== 'super_admin' 
       ? cars.map(car => ({
           ...(car as unknown as Record<string, unknown>),
           // Remove sensitive fields for regular admins
@@ -121,17 +89,16 @@ export async function GET(request: NextRequest) {
 // POST - Add new car
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and permissions
-    const user = await authManager.requireAdmin()
-    
-    // Check rate limiting
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    if (!checkOperationRateLimit(ip, 'add_car')) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      )
+    if (!csrf.verify(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 })
     }
+    const user = await authManager.requireAdmin()
+    if (!user.permissions?.canCreateCars && user.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    
+    const blocked = await guard(request)
+    if (blocked) return blocked
 
     // Parse and validate request body
     const body = await request.json()
@@ -167,19 +134,46 @@ export async function POST(request: NextRequest) {
       likes: 0
     }
 
-    const carId = await addCar(carWithAudit)
-    
-    if (!carId) {
-      return NextResponse.json(
-        { error: 'Failed to add car' },
-        { status: 500 }
-      )
+    const { data: inserted, error: insErr } = await supabaseAdmin
+      .from('cars')
+      .insert({
+        title: carWithAudit.title,
+        make: carWithAudit.make,
+        model: carWithAudit.model,
+        year: carWithAudit.year,
+        mileage: carWithAudit.mileage,
+        price: carWithAudit.price,
+        location: carWithAudit.location,
+        description: carWithAudit.description,
+        vin: carWithAudit.vin,
+        engine: carWithAudit.engine,
+        transmission: carWithAudit.transmission,
+        exterior_color: carWithAudit.exteriorColor,
+        interior_color: carWithAudit.interiorColor,
+        drive_type: carWithAudit.driveType,
+        fuel_type: carWithAudit.fuelType,
+        features: carWithAudit.features || [],
+        images: carWithAudit.images || [],
+        documents: [],
+        contact: carWithAudit.contact,
+        approved: carWithAudit.approved,
+        is_featured: carWithAudit.isFeatured,
+        is_inventory: carWithAudit.isInventory,
+        rating: carWithAudit.rating,
+        reviews: carWithAudit.reviews,
+        listed_at: new Date().toISOString(),
+        views: 0,
+        likes: 0,
+        created_by: user.id,
+      })
+      .select('id')
+      .limit(1)
+
+    if (insErr || !inserted || inserted.length === 0) {
+      return NextResponse.json({ error: 'Failed to add car' }, { status: 500 })
     }
 
-    return NextResponse.json(
-      { success: true, carId },
-      { status: 201 }
-    )
+    return NextResponse.json({ success: true, carId: inserted[0].id }, { status: 201 })
 
   } catch (error: unknown) {
     console.error('POST car error:', error)
@@ -204,17 +198,16 @@ export async function POST(request: NextRequest) {
 // PUT - Update car
 export async function PUT(request: NextRequest) {
   try {
-    // Check authentication and permissions
-    await authManager.requireAdmin()
-    
-    // Check rate limiting
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    if (!checkOperationRateLimit(ip, 'update_car')) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      )
+    if (!csrf.verify(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 })
     }
+    const user = await authManager.requireAdmin()
+    if (!user.permissions?.canEditCars && user.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    
+    const blocked = await guard(request)
+    if (blocked) return blocked
 
     // Parse and validate request body
     const body = await request.json()
@@ -227,21 +220,72 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const { id, ...updateData } = validationResult.data
+    const { id, ...updateData } = validationResult.data as CarUpdateInput
 
     // Add audit trail
-    const updateWithAudit = {
-      ...updateData,
-      updatedAt: new Date()
-    }
+    // const updateWithAudit = { ...updateData, updatedAt: new Date() }
 
     try {
-      const updatedCar = await updateCar(id, updateWithAudit)
-      return NextResponse.json({ success: true, car: updatedCar })
+      // Build update object only with defined values
+      const updateObject: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+        updated_by: user.id,
+      }
+
+      // Only add fields that are defined
+      if (updateData.title !== undefined) updateObject.title = updateData.title
+      if (updateData.make !== undefined) updateObject.make = updateData.make
+      if (updateData.model !== undefined) updateObject.model = updateData.model
+      if (updateData.year !== undefined) updateObject.year = updateData.year
+      if (updateData.mileage !== undefined) updateObject.mileage = updateData.mileage
+      if (updateData.price !== undefined) updateObject.price = updateData.price
+      if (updateData.location !== undefined) updateObject.location = updateData.location
+      if (updateData.description !== undefined) updateObject.description = updateData.description
+      if (updateData.vin !== undefined) updateObject.vin = updateData.vin
+      if (updateData.engine !== undefined) updateObject.engine = updateData.engine
+      if (updateData.transmission !== undefined) updateObject.transmission = updateData.transmission
+      if (updateData.exteriorColor !== undefined) updateObject.exterior_color = updateData.exteriorColor
+      if (updateData.interiorColor !== undefined) updateObject.interior_color = updateData.interiorColor
+      if (updateData.driveType !== undefined) updateObject.drive_type = updateData.driveType
+      if (updateData.fuelType !== undefined) updateObject.fuel_type = updateData.fuelType
+      if (updateData.features !== undefined) updateObject.features = updateData.features
+      if (updateData.images !== undefined) updateObject.images = updateData.images
+      if (updateData.documents !== undefined) updateObject.documents = updateData.documents
+      if (updateData.isFeatured !== undefined) updateObject.is_featured = updateData.isFeatured
+      if (updateData.isInventory !== undefined) updateObject.is_inventory = updateData.isInventory
+
+      // Handle contact object
+      if (updateData.phone !== undefined || updateData.whatsapp !== undefined) {
+        updateObject.contact = {
+          phone: updateData.phone || '',
+          whatsapp: updateData.whatsapp || ''
+        }
+      }
+
+      console.log('Updating car with data:', updateObject)
+
+      const { data: updated, error: upErr } = await supabaseAdmin
+        .from('cars')
+        .update(updateObject)
+        .eq('id', id)
+        .select('id')
+      
+      if (upErr) {
+        console.error('Supabase update error:', upErr)
+        throw upErr
+      }
+      if (!updated || updated.length === 0) {
+        return NextResponse.json({ error: 'Car not found' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, id: updated[0].id })
     } catch (error) {
       console.error('Error updating car:', error)
+      const err = error as unknown as { message?: string; code?: string; details?: string; hint?: string }
       return NextResponse.json(
-        { error: 'Failed to update car' },
+        { 
+          error: 'Failed to update car',
+          details: err?.message || err?.code || err?.details || err?.hint || 'Unknown error'
+        },
         { status: 500 }
       )
     }
@@ -269,17 +313,16 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete car
 export async function DELETE(request: NextRequest) {
   try {
-    // Check authentication and permissions
-    await authManager.requireAdmin()
-    
-    // Check rate limiting
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    if (!checkOperationRateLimit(ip, 'delete_car')) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      )
+    if (!csrf.verify(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 })
     }
+    const user = await authManager.requireAdmin()
+    if (!user.permissions?.canDeleteCars && user.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    
+    const blocked = await guard(request)
+    if (blocked) return blocked
 
     const { searchParams } = new URL(request.url)
     const carId = searchParams.get('id')
@@ -292,7 +335,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     try {
-      await deleteCar(carId)
+      const { error: delErr } = await supabaseAdmin
+        .from('cars')
+        .delete()
+        .eq('id', carId)
+      if (delErr) throw delErr
       return NextResponse.json({ success: true })
     } catch (error) {
       console.error('Error deleting car:', error)

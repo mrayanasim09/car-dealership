@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { jwtManager } from './jwt-utils'
-import { config } from './config'
+import { jwtManager } from '@/lib/jwt-utils'
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -23,19 +22,25 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
         )
       }
 
-      // Verify JWT token
-      const decoded = jwtManager.verifyToken(token)
-      
-      // Add user info to request
-      const authenticatedReq = req as AuthenticatedRequest
-      authenticatedReq.user = {
-        userId: decoded.userId,
-        email: decoded.email,
-        role: decoded.role,
-        permissions: decoded.permissions
+      const result = jwtManager.verifyAccessToken(token)
+      if (!result.isValid || !result.payload) {
+        return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+      }
+      if (await jwtManager.isJtiBlacklisted((result.payload as { jti?: string }).jti)) {
+        return NextResponse.json({ error: 'Token revoked' }, { status: 401 })
       }
 
-      return handler(authenticatedReq)
+      ;(req as AuthenticatedRequest).user = {
+        userId: result.payload.userId,
+        email: result.payload.email,
+        role: result.payload.role,
+        // flatten structured permissions to string keys permitted
+        permissions: Object.entries(result.payload.permissions || {})
+          .filter(([, allowed]) => Boolean(allowed))
+          .map(([key]) => key)
+      }
+
+      return handler(req as AuthenticatedRequest)
     } catch (error) {
       console.error('Auth middleware error:', error)
       
@@ -96,33 +101,19 @@ export function refreshTokenMiddleware(handler: (req: AuthenticatedRequest) => P
         return handler(req as AuthenticatedRequest)
       }
 
-      // Try to decode token to check if it's expired
-      const decoded = jwtManager.decodeToken(token)
-      
-      if (decoded && decoded.exp) {
-        const now = Math.floor(Date.now() / 1000)
-        const timeUntilExpiry = decoded.exp - now
-        
-        // Refresh token if it expires in less than 5 minutes
-        if (timeUntilExpiry < 300) {
-          const newToken = jwtManager.refreshToken(token)
-          
-          const response = await handler(req as AuthenticatedRequest)
-          
-          // Set new token in response
-          response.cookies.set('am_tycoons_admin_token', newToken, {
-            httpOnly: true,
-            secure: config.isProduction,
-            sameSite: 'strict',
-            maxAge: config.session.maxAge / 1000,
-            path: '/',
-            domain: config.isProduction ? '.amtycoons.com' : undefined
-          })
-          
-          return response
+      const result = jwtManager.verifyAccessToken(token)
+      if (result.isValid && result.payload) {
+        if (!(await jwtManager.isJtiBlacklisted((result.payload as { jti?: string }).jti))) {
+          ;(req as AuthenticatedRequest).user = {
+            userId: result.payload.userId,
+            email: result.payload.email,
+            role: result.payload.role,
+            permissions: Object.entries(result.payload.permissions || {})
+              .filter(([, allowed]) => Boolean(allowed))
+              .map(([key]) => key)
+          }
         }
       }
-      
       return handler(req as AuthenticatedRequest)
     } catch (error) {
       console.error('Token refresh error:', error)

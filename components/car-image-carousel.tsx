@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react"
-import { CloudinaryImage } from "@/components/cloudinary-image"
+import Image from "next/image"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 
 interface CarImageCarouselProps {
@@ -12,17 +12,25 @@ interface CarImageCarouselProps {
 
 export function CarImageCarousel({ images, carTitle }: CarImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [imageError, setImageError] = useState(false)
 
   const nextImage = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length)
+    setImageError(false)
   }
 
   const prevImage = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length)
+    setImageError(false)
   }
 
   const goToImage = (index: number) => {
     setCurrentIndex(index)
+    setImageError(false)
+  }
+
+  const handleImageError = () => {
+    setImageError(true)
   }
 
   return (
@@ -30,13 +38,24 @@ export function CarImageCarousel({ images, carTitle }: CarImageCarouselProps) {
       {/* Main Image */}
       <div className="relative group">
         <div className="relative h-96 md:h-[500px] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-          <CloudinaryImage
-            src={images[currentIndex] || "/placeholder.svg"}
-            alt={`${carTitle} - Image ${currentIndex + 1}`}
-            width={800}
-            height={500}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+          {!imageError && images[currentIndex] ? (
+            <Image
+              src={images[currentIndex]}
+              alt={`${carTitle} - Image ${currentIndex + 1}`}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 1000px"
+              onError={handleImageError}
+              priority={false}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+              <div className="text-center">
+                <div className="text-gray-500 dark:text-gray-400 text-lg mb-2">No Image Available</div>
+                <div className="text-gray-400 dark:text-gray-500 text-sm">{carTitle}</div>
+              </div>
+            </div>
+          )}
           
           {/* Navigation Arrows */}
           {images.length > 1 && (
@@ -65,13 +84,21 @@ export function CarImageCarousel({ images, carTitle }: CarImageCarouselProps) {
             </DialogTrigger>
             <DialogContent className="max-w-4xl w-full h-[80vh]">
               <div className="relative h-full">
-                <CloudinaryImage
-                  src={images[currentIndex] || "/placeholder.svg"}
-                  alt={`${carTitle} - Image ${currentIndex + 1}`}
-                  width={1200}
-                  height={800}
-                  className="w-full h-full object-contain"
-                />
+                 {images[currentIndex] ? (
+                  <Image
+                    src={images[currentIndex]}
+                    alt={`${carTitle} - Image ${currentIndex + 1}`}
+                     fill
+                     className="object-contain"
+                    sizes="100vw"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                    <div className="text-center">
+                      <div className="text-gray-500 dark:text-gray-400 text-lg">No Image Available</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </DialogContent>
           </Dialog>
@@ -96,7 +123,7 @@ export function CarImageCarousel({ images, carTitle }: CarImageCarouselProps) {
                   : 'border-gray-300 dark:border-gray-600 hover:border-red-300'
               }`}
             >
-              <CloudinaryImage
+              <Image
                 src={image}
                 alt={`${carTitle} - Thumbnail ${index + 1}`}
                 width={80}

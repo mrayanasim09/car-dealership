@@ -4,32 +4,40 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CarManagement } from "@/components/admin/car-management"
-import { ReviewManagement } from "@/components/admin/review-management"
-import { DebugPanel } from "@/components/debug-panel"
+import dynamic from 'next/dynamic'
+const CarManagement = dynamic(() => import("@/components/admin/car-management").then(m => m.CarManagement), { ssr: false })
+const ReviewManagement = dynamic(() => import("@/components/admin/review-management").then(m => m.ReviewManagement), { ssr: false })
+const DebugPanel = dynamic(() => import("@/components/debug-panel").then(m => m.DebugPanel), { ssr: false })
 import { useAuth } from "@/lib/auth-context"
-import { signOut } from "firebase/auth"
-import { auth, getFirebaseStatus, isFirestoreAvailable } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import type { Car, Review } from "@/lib/types"
-import { getAllCars, getReviews } from "@/lib/firebase"
-import { LogOut, CarIcon, MessageSquare, BarChart3, AlertTriangle, CheckCircle, XCircle, Bug } from "lucide-react"
+// Data fetched via API routes instead of direct server client in browser
+import { LogOut, CarIcon, MessageSquare, BarChart3, Settings, Users as UsersIcon } from "lucide-react"
+import { CarLoader } from "@/components/ui/car-loader"
+const UserManagement = dynamic(() => import("@/components/admin/session-management").then(m => m.UserManagement), { ssr: false })
+import { SessionManagement } from "./session-management"
 
 export function AdminDashboard() {
-  const { user, isFirebaseAvailable } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const [cars, setCars] = useState<Car[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
-  const [firebaseStatus, setFirebaseStatus] = useState(getFirebaseStatus())
+  // Firebase removed
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [carsData, reviewsData] = await Promise.all([getAllCars().catch(() => []), getReviews().catch(() => [])])
-        setCars(carsData)
-        setReviews(reviewsData)
-        setFirebaseStatus(getFirebaseStatus())
+        const [carsRes, reviewsRes] = await Promise.all([
+          fetch('/api/admin/cars', { cache: 'no-store' }),
+          fetch('/api/reviews', { cache: 'no-store' })
+        ])
+        const carsJson = await carsRes.json()
+        const reviewsJson = await reviewsRes.json()
+        // Types kept minimal; mapping happens at usage
+        setCars(((carsJson?.cars || []) as unknown as Car[]))
+        // Types kept minimal; mapping happens at usage
+        setReviews(((reviewsJson?.reviews || []) as unknown as Review[]))
       } catch (error) {
         console.error("Error fetching data:", error)
       } finally {
@@ -42,9 +50,7 @@ export function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
-      if (auth && isFirebaseAvailable) {
-        await signOut(auth)
-      }
+      // Stateless logout handled by API; just navigate
       router.push("/")
     } catch (error) {
       console.error("Error signing out:", error)
@@ -61,124 +67,32 @@ export function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <CarLoader size={128} />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-card shadow-sm border-b border-border hidden lg:block">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-600">Welcome, {user?.email || "Demo User"}</span>
+              <span className="text-muted-foreground">Welcome, {user?.email || "Admin"}</span>
               <Button onClick={handleLogout} variant="outline" size="sm">
                 <LogOut className="h-4 w-4 mr-2" />
-                {isFirebaseAvailable ? "Logout" : "Back to Home"}
+                Logout
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Firebase Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Firebase App</p>
-                  <p className="text-xs text-gray-500">Core initialization</p>
-                </div>
-                {firebaseStatus.app ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-green-500">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Authentication</p>
-                  <p className="text-xs text-gray-500">User login system</p>
-                </div>
-                {firebaseStatus.auth ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-yellow-500">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Firestore</p>
-                  <p className="text-xs text-gray-500">Database storage</p>
-                </div>
-                {firebaseStatus.firestore ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-purple-500">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Storage</p>
-                  <p className="text-xs text-gray-500">File uploads</p>
-                </div>
-                {firebaseStatus.storage ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Status Message */}
-        {!isFirestoreAvailable() && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium text-yellow-800">Firestore Setup Required</h3>
-                <p className="text-sm text-yellow-700 mt-1">
-                  You're currently viewing demo data with Cloudinary images. To enable full functionality:
-                </p>
-                <ol className="text-sm text-yellow-700 mt-2 ml-4 list-decimal">
-                  <li>Go to your Firebase Console</li>
-                  <li>Navigate to Firestore Database</li>
-                  <li>Click "Create database"</li>
-                  <li>Choose "Start in test mode" for now</li>
-                  <li>Select a location and create</li>
-                </ol>
-                {firebaseStatus.error && (
-                  <p className="text-xs text-yellow-600 mt-2 font-mono bg-yellow-100 p-2 rounded">
-                    Error: {firebaseStatus.error}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="px-4 lg:px-6 py-8 pb-24 max-w-7xl mx-auto">
+        {/* Status section removed (Firebase references deleted) */}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -189,7 +103,7 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalCars}</div>
-              <p className="text-xs text-muted-foreground">{isFirestoreAvailable() ? "From Firestore" : "Demo data"}</p>
+              <p className="text-xs text-muted-foreground">Admin data</p>
             </CardContent>
           </Card>
 
@@ -229,10 +143,16 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="cars" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="cars">Car Management</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
-            <TabsTrigger value="debug">Debug</TabsTrigger>
+          <TabsList className="w-full overflow-x-auto whitespace-nowrap -mx-4 px-4 lg:mx-0 lg:px-0 sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+            <TabsTrigger className="min-w-[9rem]" value="cars">Car Management</TabsTrigger>
+            <TabsTrigger className="min-w-[9rem]" value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger className="min-w-[9rem]" value="sessions">Sessions</TabsTrigger>
+            <TabsTrigger className="min-w-[9rem]" value="debug">Debug</TabsTrigger>
+            {user?.role === 'super_admin' && (
+              <TabsTrigger className="min-w-[9rem]" value="users">
+                <div className="flex items-center gap-1"><UsersIcon className="h-4 w-4" /> Users</div>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="cars">
@@ -243,9 +163,31 @@ export function AdminDashboard() {
             <ReviewManagement reviews={reviews} />
           </TabsContent>
 
+          <TabsContent value="sessions">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Session Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SessionManagement />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="debug">
             <DebugPanel />
           </TabsContent>
+
+          {user?.role === 'super_admin' && (
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

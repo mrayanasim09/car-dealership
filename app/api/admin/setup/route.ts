@@ -1,78 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getFirestore, collection, doc, setDoc, query, where, getDocs } from 'firebase/firestore'
-import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app'
-import bcrypt from 'bcryptjs'
-
-// Server-safe Firebase configuration
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-}
-
-// Initialize Firebase for server-side
-let app: FirebaseApp;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
-}
+import { createAdmin } from '@/lib/admin-utils'
+import { AdminRole } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, role = 'super_admin' } = await request.json()
-    
-    // Get Firestore instance
-    const db = getFirestore(app)
-    
-    if (!db) {
-      return NextResponse.json({ error: 'Firebase not initialized' }, { status: 500 })
-    }
-    
-    // Check if admin already exists
-    const usersRef = collection(db, 'admin_users')
-    const q = query(usersRef, where('email', '==', email.toLowerCase()))
-    const querySnapshot = await getDocs(q)
-    
-    if (!querySnapshot.empty) {
+    const { email, password, role = 'super_admin' as AdminRole } = await request.json()
+
+    if (!email || !password) {
       return NextResponse.json(
-        { error: 'Admin user already exists' },
+        { error: 'Email and password are required' },
         { status: 400 }
       )
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12)
-    
-    // Create admin user
-    const adminUser = {
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      role,
-      isActive: true,
-      lastLogin: new Date(),
-      loginAttempts: 0,
-      lockoutUntil: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
+    // Validate role
+    const validRoles: AdminRole[] = ['super_admin', 'admin', 'editor', 'viewer']
+    if (!validRoles.includes(role)) {
+      return NextResponse.json(
+        { error: 'Invalid role. Must be one of: super_admin, admin, editor, viewer' },
+        { status: 400 }
+      )
     }
 
-    const docRef = doc(collection(db, 'admin_users'))
-    await setDoc(docRef, adminUser)
+    // Create the admin with role-based permissions
+    const admin = await createAdmin(email, password, role, 'system')
 
-    return NextResponse.json({
-      success: true,
-      message: 'Admin user created successfully',
-      userId: docRef.id
-    })
+    // Return admin info (without password hash)
+    const { id, email: savedEmail, role: savedRole, permissions, createdAt, updatedAt, createdBy } = admin
+    return NextResponse.json({ success: true, message: `${role} created successfully`, admin: { id, email: savedEmail, role: savedRole, permissions, createdAt, updatedAt, createdBy } })
 
   } catch (error) {
-    console.error('Setup error:', error)
+    console.error('Admin setup error:', error)
     return NextResponse.json(
-      { error: 'Failed to create admin user' },
+      { error: 'Failed to create admin' },
       { status: 500 }
     )
   }

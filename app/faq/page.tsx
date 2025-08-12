@@ -45,14 +45,14 @@ export default function FAQPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+      <main className="min-h-screen bg-background py-12">
         <div className="container mx-auto px-4 max-w-3xl">
           <h1 className="text-4xl font-bold text-center mb-8">Frequently Asked Questions</h1>
           <div className="space-y-6">
             {faqs.map((faq, idx) => (
-              <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div key={idx} className="bg-card rounded-xl border border-border p-6">
                 <h2 className="text-xl font-semibold mb-2">{faq.question}</h2>
-                <p className="text-gray-700 dark:text-gray-300">{faq.answer}</p>
+                <p className="text-muted-foreground">{faq.answer}</p>
               </div>
             ))}
           </div>

@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://amtycoonsinc.com/sitemap.xml
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /inventory
+Allow: /listings
+Allow: /faq
+Allow: /car/
+
+# Crawl delay (optional)
+Crawl-delay: 1

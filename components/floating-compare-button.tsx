@@ -1,20 +1,40 @@
 "use client"
 
-import { useState } from "react"
-import { Scale, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Scale } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useComparison } from "@/lib/comparison-context"
 import { CarComparison } from "@/components/car-comparison"
 import type { Car } from "@/lib/types"
 
-interface FloatingCompareButtonProps {
-  availableCars: Car[]
-}
-
-export function FloatingCompareButton({ availableCars }: FloatingCompareButtonProps) {
+export function FloatingCompareButton() {
   const { selectedCars } = useComparison()
   const [showComparison, setShowComparison] = useState(false)
+  const [availableCars, setAvailableCars] = useState<Car[]>([])
+
+  useEffect(() => {
+    // Fetch cars data when component mounts
+    const fetchCars = async () => {
+      try {
+        // Import client-safe Supabase
+        const { supabasePublic } = await import("@/lib/supabase/client")
+        const { data } = await supabasePublic
+          .from('cars')
+          .select('*')
+          .eq('approved', true)
+          .order('listed_at', { ascending: false })
+          .limit(12)
+        const cars = (data || []) as unknown as Car[]
+        setAvailableCars(cars)
+      } catch (error) {
+        console.error("Error loading cars for comparison:", error)
+        setAvailableCars([])
+      }
+    }
+
+    fetchCars()
+  }, [])
 
   if (selectedCars.length === 0) {
     return (

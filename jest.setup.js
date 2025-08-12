@@ -37,42 +37,44 @@ jest.mock('next/image', () => ({
   },
 }))
 
-// Mock Firebase
-const mockApp = {}
-jest.mock('firebase/app', () => ({
-  initializeApp: jest.fn(() => mockApp),
-  getApps: jest.fn(() => [mockApp]),
-  getApp: jest.fn(() => mockApp),
-}))
+// Mock Firebase (conditionally, only if modules exist)
+try {
+  const mockApp = {}
+  jest.mock('firebase/app', () => ({
+    initializeApp: jest.fn(() => mockApp),
+    getApps: jest.fn(() => [mockApp]),
+    getApp: jest.fn(() => mockApp),
+  }))
+  jest.mock('firebase/auth', () => ({
+    getAuth: jest.fn(() => ({
+      currentUser: null,
+      signInWithEmailAndPassword: jest.fn(),
+      signOut: jest.fn(),
+    })),
+  }))
+  jest.mock('firebase/firestore', () => ({
+    getFirestore: jest.fn(() => ({})),
+    collection: jest.fn(() => ({})),
+    doc: jest.fn(() => ({})),
+    setDoc: jest.fn(() => Promise.resolve()),
+    getDocs: jest.fn(() => Promise.resolve({ empty: true, docs: [] })),
+    query: jest.fn(() => ({})),
+    where: jest.fn(() => ({})),
+  }))
+} catch {}
 
-jest.mock('firebase/auth', () => ({
-  getAuth: jest.fn(() => ({
-    currentUser: null,
-    signInWithEmailAndPassword: jest.fn(),
-    signOut: jest.fn(),
-  })),
-}))
-
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(() => ({})),
-  collection: jest.fn(() => ({})),
-  doc: jest.fn(() => ({})),
-  setDoc: jest.fn(() => Promise.resolve()),
-  getDocs: jest.fn(() => Promise.resolve({ empty: true, docs: [] })),
-  query: jest.fn(() => ({})),
-  where: jest.fn(() => ({})),
-}))
-
-// Mock Cloudinary
-jest.mock('cloudinary', () => ({
-  v2: {
-    config: jest.fn(),
-    uploader: {
-      upload: jest.fn(),
-      destroy: jest.fn(),
+// Mock Cloudinary (conditionally)
+try {
+  jest.mock('cloudinary', () => ({
+    v2: {
+      config: jest.fn(),
+      uploader: {
+        upload: jest.fn(),
+        destroy: jest.fn(),
+      },
     },
-  },
-}))
+  }))
+} catch {}
 
 // Mock localStorage
 const localStorageMock = (() => {

@@ -4,21 +4,35 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import { ComparisonProvider } from "@/lib/comparison-context";
 import { Toaster } from "@/components/ui/sonner";
+import dynamic from "next/dynamic";
+import { useState } from "react";
+
+const AIChatbot = dynamic(() => import("@/components/ai-chatbot").then(m => m.AIChatbot), { ssr: false, loading: () => null });
 import { useEffect } from "react";
-import { initializeFirebase } from "@/lib/firebase";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  // This effect ensures Firebase is initialized on the client side
+  // Firebase removed; no client initialization needed
+  const [shouldMountChat, setShouldMountChat] = useState(false);
+
   useEffect(() => {
-    initializeFirebase();
+    const mount = () => setShouldMountChat(true)
+    const win = window as Window & typeof globalThis & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+    }
+    if (typeof win.requestIdleCallback === 'function') {
+      win.requestIdleCallback(() => mount(), { timeout: 2500 })
+    } else {
+      setTimeout(mount, 1500)
+    }
   }, []);
 
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
+      defaultTheme="light"
+      enableSystem={false}
       disableTransitionOnChange
+      storageKey="am-tycoons-theme"
     >
       <AuthProvider>
         <ComparisonProvider>
@@ -29,6 +43,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             closeButton
             duration={4000}
           />
+          {shouldMountChat && <AIChatbot />}
         </ComparisonProvider>
       </AuthProvider>
     </ThemeProvider>

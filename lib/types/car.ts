@@ -1,6 +1,6 @@
 export interface CarImage {
   url: string;
-  publicId: string;
+  publicId?: string;
   main?: boolean;
 }
 
@@ -11,14 +11,14 @@ export interface CarFeature {
 }
 
 export interface CarSpecs {
-  engine: string;
-  transmission: string;
-  fuelType: string;
+  engine?: string;
+  transmission?: string;
+  fuelType?: string;
   mileage: number;
   year: number;
-  color: string;
-  doors: number;
-  seats: number;
+  color?: string;
+  doors?: number;
+  seats?: number;
 }
 
 export interface Car {
@@ -29,34 +29,40 @@ export interface Car {
   description: string;
   price: number;
   discountedPrice?: number;
-  specs: CarSpecs;
+  specs?: CarSpecs;
   features: CarFeature[];
   images: CarImage[];
-  status: 'available' | 'sold' | 'reserved' | 'maintenance';
-  condition: 'new' | 'used' | 'certified';
+  status?: 'available' | 'sold' | 'reserved' | 'maintenance';
+  condition?: 'new' | 'used' | 'certified';
   featured?: boolean;
   trending?: boolean;
   approved?: boolean;
   isFeatured?: boolean;
+  isInventory?: boolean;
   exteriorColor?: string;
   interiorColor?: string;
   mileage: number;
   year: number;
   location?: string;
+  vin?: string;
+  engine?: string;
+  transmission?: string;
+  driveType?: string;
+  fuelType?: string;
   documents?: Array<{ name: string; url: string }> | string;
   contact?: {
     phone: string;
     whatsapp?: string;
   };
   rating?: number;
-  reviews?: any[];
+  reviews?: Record<string, unknown>[];
   listedAt?: Date;
-  views: number;
-  likes: number;
-  slug: string;
+  views?: number;
+  likes?: number;
+  slug?: string;
   searchTerms?: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
-  updatedBy: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  createdBy?: string;
+  updatedBy?: string;
 }

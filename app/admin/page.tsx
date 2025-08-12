@@ -1,24 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { AdminLogin } from "@/components/admin/admin-login"
-import { AdminDashboard } from "@/components/admin/admin-dashboard"
+
+import dynamic from 'next/dynamic'
+const EmailAdminLogin = dynamic(() => import("@/components/admin/email-admin-login").then(m => m.EmailAdminLogin), { ssr: false })
+const AdminDashboard = dynamic(() => import("@/components/admin/admin-dashboard").then(m => m.AdminDashboard), { ssr: false })
 import { useAuth } from "@/lib/auth-context"
 
 export default function AdminPage() {
   const { user, loading } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
     if (!loading) {
-      // Check if user is admin (you can customize this logic)
-      if (user && user.email === "mrayanasim09@gmail.com") {
-        setIsAuthenticated(true)
-      } else {
-        setIsAuthenticated(false)
-      }
+      setIsAuthenticated(Boolean(user))
     }
   }, [user, loading])
 
@@ -30,13 +25,5 @@ export default function AdminPage() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {isAuthenticated ? (
-        <AdminDashboard />
-      ) : (
-        <AdminLogin />
-      )}
-    </div>
-  )
+  return isAuthenticated ? <AdminDashboard /> : <EmailAdminLogin />
 } 

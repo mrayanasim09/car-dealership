@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { AboutContent } from "@/components/about-content"
-import { WhatsAppButton } from "@/components/whatsapp-button"
+
 import { Metadata } from 'next'
 
 // Optimize caching and performance
@@ -25,11 +25,10 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <AboutContent />
       <Footer />
-      <WhatsAppButton />
     </div>
   )
 }
