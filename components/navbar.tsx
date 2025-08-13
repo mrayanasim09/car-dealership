@@ -35,14 +35,14 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
-            <Link href="/" className="flex items-center gap-3 group" aria-label="AM Tycoons Inc. Home" onClick={closeMenu}>
+            <Link href="/" className="flex items-center gap-2 md:gap-3 group" aria-label="AM Tycoons Inc. Home" onClick={closeMenu}>
               <div className="relative h-12 w-20 md:h-16 md:w-28 transition-transform duration-200 group-hover:scale-[1.02]">
                 <Image src="/optimized/am-tycoons-logo.webp" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="(max-width: 768px) 120px, 160px" priority={false} />
               </div>
               {/* Brand text - both mobile and desktop clickable */}
               <div className="leading-tight">
                 <div className="text-base md:text-lg font-bold text-foreground tracking-tight"><BrandName /></div>
-                <div className="text-[10px] md:text-xs text-muted-foreground">FIND YOUR PERFECT DRIVE</div>
+                <div className="hidden sm:block text-[10px] md:text-xs text-muted-foreground">FIND YOUR PERFECT DRIVE</div>
               </div>
             </Link>
           </div>
