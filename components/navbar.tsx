@@ -34,9 +34,9 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Brand */}
-          <div className="flex items-center gap-3 flex-1">
+          <div className="flex items-center gap-3 shrink-0">
             <Link href="/" className="flex items-center gap-3 group" aria-label="AM Tycoons Inc. Home" onClick={closeMenu}>
-              <div className="relative h-14 w-24 md:h-16 md:w-28 transition-transform duration-200 group-hover:scale-[1.02]">
+              <div className="relative h-12 w-20 md:h-16 md:w-28 transition-transform duration-200 group-hover:scale-[1.02]">
                 <Image src="/optimized/am-tycoons-logo.webp" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="(max-width: 768px) 120px, 160px" priority={false} />
               </div>
               {/* Brand text - both mobile and desktop clickable */}
@@ -48,7 +48,7 @@ export function Navbar() {
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6 flex-1 justify-end overflow-x-auto">
             <Link href="/" className="text-foreground/80 hover:text-primary transition-colors font-medium">
               Home
             </Link>
@@ -64,12 +64,13 @@ export function Navbar() {
           </div>
 
             {/* Theme Toggle only */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2 shrink-0 ml-4">
             <ThemeToggle />
           </div>
 
-          {/* Mobile Menu Button (theme toggle moved into mobile menu to avoid overlap) */}
-          <div className="md:hidden flex items-center">
+          {/* Mobile: show Theme Toggle + Menu with spacing; prevent overlap by shrinking brand on sm */}
+          <div className="md:hidden flex items-center gap-2 shrink-0">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"
