@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
       .order('updated_at', { ascending: false })
       .limit(5)
     if (findErr) {
-      console.error('Supabase find user error:', findErr)
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Supabase find user error:', findErr)
+      }
       return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
     }
     if (!candidates || candidates.length === 0) {
@@ -86,17 +88,16 @@ export async function POST(request: NextRequest) {
       : String(storedCodeRaw).trim().replace(/\D/g, '').padStart(6, '0')
     const expiry = userData.verification_code_expires_at ? new Date(userData.verification_code_expires_at) : null
 
-    // Debug logging
-    console.log('Debug verification:', {
-      email,
-      codeInput,
-      code,
-      storedCodeRaw,
-      storedCode,
-      expiry: expiry?.toISOString(),
-      now: new Date().toISOString(),
-      isExpired: expiry ? Date.now() > expiry.getTime() : false
-    })
+    // Debug logging (development only)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Debug verification:', {
+        email,
+        hasCode: Boolean(storedCode),
+        expiry: expiry?.toISOString(),
+        now: new Date().toISOString(),
+        isExpired: expiry ? Date.now() > expiry.getTime() : false
+      })
+    }
 
     if (!storedCode) {
       // If user already has a valid, verified token cookie, treat as success to avoid dead-end UX
@@ -155,7 +156,9 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', userData.id)
     if (upErr) {
-      console.error('Supabase verify update error:', upErr)
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Supabase verify update error:', upErr)
+      }
       return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
     }
 
@@ -202,7 +205,9 @@ export async function POST(request: NextRequest) {
     await rateLimiters.twoFA.recordSuccess(request)
     return response
   } catch (error) {
-    console.error('login-verify error:', error)
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('login-verify error:', error)
+    }
     const err = error as unknown as { message?: string; code?: string }
     return NextResponse.json({ error: 'Verification failed', details: err?.message || err?.code || 'Unknown error' }, { status: 500 })
   }

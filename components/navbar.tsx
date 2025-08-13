@@ -68,9 +68,8 @@ export function Navbar() {
             <ThemeToggle />
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle />
+          {/* Mobile Menu Button (theme toggle moved into mobile menu to avoid overlap) */}
+          <div className="md:hidden flex items-center">
             <Button
               variant="ghost"
               size="sm"
@@ -91,7 +90,10 @@ export function Navbar() {
         <Dialog open={isMenuOpen} onOpenChange={(o) => (o ? setIsMenuOpen(true) : setIsMenuOpen(false))}>
           <DialogContent className="p-0 border-0 bg-transparent shadow-none">
             <div id="mobile-nav" className="md:hidden bg-background border-t border-border shadow-lg" aria-label="Mobile navigation">
-              <div className="px-4 py-6 space-y-4" tabIndex={-1}>
+              <div className="px-4 pt-4 pb-2 flex justify-end">
+                <ThemeToggle />
+              </div>
+              <div className="px-4 py-4 space-y-4" tabIndex={-1}>
                 <Link href="/" className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Home</Link>
                 <Link href="/listings" className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Inventory</Link>
                 <Link href="/about" className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>About</Link>

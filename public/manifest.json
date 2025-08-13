@@ -1,7 +1,7 @@
 {
   "name": "AM Tycoons Inc. - Premium Car Dealership",
   "short_name": "AM Tycoons Inc.",
-  "description": "Discover premium cars at AM Tycoons Inc. Your trusted car dealership in Los Angeles. Browse our extensive inventory of quality vehicles with competitive financing options.",
+  "description": "Discover premium cars at AM Tycoons Inc. Your trusted car dealership in Norwalk, California. Browse our extensive inventory of quality vehicles with competitive financing options.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -11,48 +11,14 @@
   "lang": "en",
   "categories": ["business", "automotive", "shopping"],
   "icons": [
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "72x72",
-      "type": "image/webp"
-    },
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "96x96",
-      "type": "image/webp"
-    },
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "128x128",
-      "type": "image/webp"
-    },
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "144x144",
-      "type": "image/webp"
-    },
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "152x152",
-      "type": "image/webp"
-    },
-    {
-      "src": "/optimized/am-tycoons-logo.png",
-      "sizes": "384x384",
-      "type": "image/webp"
-    }
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "72x72",  "type": "image/webp" },
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "96x96",  "type": "image/webp" },
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "128x128", "type": "image/webp" },
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "144x144", "type": "image/webp" },
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "152x152", "type": "image/webp" },
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "192x192", "type": "image/webp" },
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "384x384", "type": "image/webp" },
+    { "src": "/optimized/am-tycoons-logo.webp", "sizes": "512x512", "type": "image/webp" }
   ],
   "screenshots": [
     {

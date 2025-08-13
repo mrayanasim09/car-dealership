@@ -20,6 +20,13 @@ interface CarPageProps {
   }
 }
 
+// Escape JSON-LD to avoid XSS/script breakouts
+function safeJsonLd(obj: unknown): string {
+  return JSON.stringify(obj)
+    .replace(/</g, '\\u003c')
+    .replace(/<\/script/gi, '<\\/script')
+}
+
 export async function generateMetadata({ params }: CarPageProps): Promise<Metadata> {
   const { data } = await supabasePublic.from('cars').select('*').eq('id', params.id).single()
   const car = mapDbCarToCar(data)
@@ -69,8 +76,8 @@ export default async function CarPage({ params }: CarPageProps) {
           type="application/ld+json"
           strategy="afterInteractive"
           nonce={nonce}
-            dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLd({
               '@context': 'https://schema.org',
               '@type': 'Product',
               name: car.title,

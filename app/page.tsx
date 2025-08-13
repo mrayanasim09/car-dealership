@@ -1,7 +1,5 @@
 // app/page.tsx
 
-"use client"
-
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { BrandName } from "@/components/brand-name"

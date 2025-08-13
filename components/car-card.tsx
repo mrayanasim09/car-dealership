@@ -103,7 +103,11 @@ export const CarCard = memo(function CarCard({ car, showCompareButton = false }:
 
           {/* Featured Badge */}
           {car.isFeatured && (
-            <Badge className="absolute top-2 right-2 bg-yellow-500 text-white font-bold text-xs" aria-label="Featured vehicle">
+            <Badge
+              variant="warning"
+              className="absolute top-2 right-2 font-bold text-xs"
+              aria-label="Featured vehicle"
+            >
               Featured
             </Badge>
           )}

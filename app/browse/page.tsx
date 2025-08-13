@@ -16,8 +16,10 @@ import type { Car } from "@/lib/types"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { supabasePublic } from "@/lib/supabase/client"
 import Script from 'next/script'
+import { useCspNonce } from '@/hooks/use-csp-nonce'
 
 export default function BrowsePage() {
+  const nonce = useCspNonce()
   const [allCars, setAllCars] = useState<Car[]>([])
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<string>("featured")
@@ -75,6 +77,7 @@ export default function BrowsePage() {
           id="browse-jsonld"
           type="application/ld+json"
           strategy="afterInteractive"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
@@ -85,7 +88,7 @@ export default function BrowsePage() {
                 url: `${typeof window !== 'undefined' ? window.location.origin : ''}/car/${car.id}`,
                 name: car.title,
               })),
-            }),
+            }).replace(/</g, '\\u003c').replace(/<\/script/gi, '<\\/script'),
           }}
         />
         <div className="text-center mb-8">

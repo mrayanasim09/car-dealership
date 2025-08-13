@@ -153,7 +153,7 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
                 fill
                 className="object-cover"
               />
-              <Badge className={`absolute top-2 right-2 ${car.approved ? "bg-primary" : "bg-yellow-600"}`}>
+              <Badge className={`absolute top-2 right-2 ${car.approved ? "bg-primary" : ""}`} variant={car.approved ? undefined : "warning"}>
                 {car.approved ? "Approved" : "Pending"}
               </Badge>
             </div>

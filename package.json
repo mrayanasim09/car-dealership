@@ -112,6 +112,8 @@
     "postcss": "^8.5",
     "start-server-and-test": "^2.0.13",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "checkly": "latest",
+    "jiti": "^2"
   }
 }

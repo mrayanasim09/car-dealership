@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { useToast } from "@/components/ui/use-toast"
-import { MapPin, Mail, Clock, Send, Car, CreditCard, Wrench } from "lucide-react"
+import { MapPin, Mail, Clock, Send, Car, CreditCard, Wrench, Phone, MessageSquare } from "lucide-react"
 import Script from 'next/script'
+import { useCspNonce } from '@/hooks/use-csp-nonce'
 
 export function ContactContent() {
+  const nonce = useCspNonce()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -188,6 +190,7 @@ export function ContactContent() {
         <Script
           src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
           strategy="lazyOnload"
+          nonce={nonce}
         />
       ) : null}
       {/* Compact Hero */}
@@ -232,35 +235,40 @@ export function ContactContent() {
         </div>
       </section>
 
-      {/* Phone Numbers Section - show all 4 with Call/SMS (no labels) */}
+      {/* Phone Numbers Section - compact on mobile, unchanged on tablet/desktop */}
       <section className="py-6 md:py-8 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 md:mb-10">
             <h2 className="text-3xl font-bold text-foreground mb-2">Contact Numbers</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">Call or text us anytime. We&apos;re here to help you find your perfect vehicle.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Mobile horizontal scroll, grid on md+ */}
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:overflow-visible">
             {[
               { e164: "+14243030386", label: "+1 424-303-0386" },
               { e164: "+13103507709", label: "+1 310-350-7709" },
               { e164: "+13109720341", label: "+1 310-972-0341" },
               { e164: "+13109048377", label: "+1 310-904-8377" }
             ].map((phone, index) => (
-              <Card key={index} className="bg-card border-border">
-                <CardContent className="p-6 text-center">
-                  <p className="text-xl font-bold text-primary mb-4">{phone.label}</p>
-                  <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 justify-center">
+              <Card key={index} className="bg-card border-border min-w-[220px] snap-center md:min-w-0">
+                <CardContent className="p-4 md:p-6 text-center">
+                  <p className="text-lg md:text-xl font-bold text-primary mb-3 md:mb-4">{phone.label}</p>
+                  <div className="flex flex-col gap-2 md:flex-row md:gap-2 justify-center items-stretch">
                     <a
                       href={`tel:${phone.e164}`}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-lg font-medium transition-colors touch-button"
+                      aria-label={`Call ${phone.label}`}
+                      className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 md:px-4 md:py-3 rounded-full font-medium transition-colors touch-button md:flex-1 text-sm md:text-base"
                     >
-                      Call Now
+                      <Phone className="h-4 w-4" />
+                      <span>Call</span>
                     </a>
                     <a
                       href={`sms:${phone.e164}`}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-lg font-medium transition-colors touch-button"
+                      aria-label={`Text ${phone.label}`}
+                      className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 md:px-4 md:py-3 rounded-full font-medium transition-colors touch-button md:flex-1 text-sm md:text-base"
                     >
-                      Send SMS
+                      <MessageSquare className="h-4 w-4" />
+                      <span>SMS</span>
                     </a>
                   </div>
                 </CardContent>

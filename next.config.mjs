@@ -2,6 +2,7 @@ import bundleAnalyzer from '@next/bundle-analyzer'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  productionBrowserSourceMaps: true,
   experimental: {
     // optimizeCss: true, // Disabled due to critters module issues
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-icons'],
@@ -39,26 +40,7 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          // Content Security Policy
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              // Using nonces for inline scripts; Next can inject a nonce via middleware/headers if desired
-              "script-src 'self' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://apis.google.com https://www.google.com https://www.gstatic.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: https: blob: https://*.public.blob.vercel-storage.com https://www.google-analytics.com https://maps.gstatic.com https://*.googleusercontent.com",
-              "connect-src 'self' https://www.google-analytics.com https://vercel.live https://*.supabase.co wss://*.supabase.co https://www.google.com https://maps.googleapis.com",
-              "frame-src 'self' https://www.google.com https://*.google.com https://*.google.com/maps https://*.google.com/maps/embed",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "frame-ancestors 'none'",
-              "report-to csp-endpoint",
-              "upgrade-insecure-requests"
-            ].join('; ')
-          },
+          // CSP is set dynamically with nonces in middleware
           {
             key: 'Report-To',
             value: JSON.stringify({

@@ -78,7 +78,7 @@ export default function RootLayout({
   const nonce = headers().get('x-nonce') || undefined
   return (
     <html lang="en" className="light" suppressHydrationWarning>
-    <Script id="theme-script" strategy="beforeInteractive">{`
+    <Script id="theme-script" strategy="beforeInteractive" nonce={nonce}>{`
       (function() {
         try {
           var storageKey = 'am-tycoons-theme';
@@ -94,6 +94,7 @@ export default function RootLayout({
       })();
     `}</Script>
       <head>
+        {nonce ? <meta name="csp-nonce" content={nonce} /> : null}
         {/* Google tag (gtag.js) - load lazily to keep main thread free */}
         <Script
           id="gtag-src"

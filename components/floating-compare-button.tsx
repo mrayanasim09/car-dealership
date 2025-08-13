@@ -56,7 +56,10 @@ export function FloatingCompareButton() {
         aria-label={`Compare ${selectedCars.length} cars`}
       >
         <Scale className="h-6 w-6" />
-        <Badge className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs font-bold min-w-[20px] h-5 flex items-center justify-center">
+        <Badge
+          variant="warning"
+          className="absolute -top-2 -right-2 text-xs font-bold min-w-[20px] h-5 flex items-center justify-center"
+        >
           {selectedCars.length}
         </Badge>
       </Button>

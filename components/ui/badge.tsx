@@ -14,6 +14,9 @@ const badgeVariants = cva(
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        warning:
+          // High-contrast accessible yellow badge
+          "border-transparent bg-yellow-400 text-black hover:bg-yellow-500 dark:bg-yellow-300 dark:text-black dark:hover:bg-yellow-400",
         outline: "text-foreground",
       },
     },

@@ -9,9 +9,11 @@ import { CarLoader } from '@/components/ui/car-loader'
 import { supabasePublic } from '@/lib/supabase/client'
 import type { Car } from '@/lib/types'
 import Script from 'next/script'
+import { useCspNonce } from '@/hooks/use-csp-nonce'
 // CSS animation utilities are used to avoid client boundary issues
 
 export default function ListingsPage() {
+  const nonce = useCspNonce()
   const [cars, setCars] = useState<Car[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -118,6 +120,7 @@ export default function ListingsPage() {
           id="listings-jsonld"
           type="application/ld+json"
           strategy="afterInteractive"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
@@ -128,7 +131,7 @@ export default function ListingsPage() {
                 url: `${typeof window !== 'undefined' ? window.location.origin : ''}/car/${car.id}`,
                 name: car.title,
               })),
-            }),
+            }).replace(/</g, '\\u003c').replace(/<\/script/gi, '<\\/script'),
           }}
         />
         <div className="mb-8 animate-fade-in">
