@@ -169,7 +169,7 @@ export function GoogleReviews({ placeId = "ChIJN1t_tDeuEmsRUsoyG83frY4", maxRevi
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
                   <Image
-                    src={review.profile_photo_url || "https://via.placeholder.com/40"}
+                    src={review.profile_photo_url || "/optimized/placeholder-user.webp"}
                     alt={review.author_name}
                     width={40}
                     height={40}

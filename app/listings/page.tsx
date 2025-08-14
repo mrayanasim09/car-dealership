@@ -115,7 +115,7 @@ export default function ListingsPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-6 md:py-8">
+      <div className="container mx-auto px-4 py-5 md:py-8">
         <Script
           id="listings-jsonld"
           type="application/ld+json"
@@ -125,17 +125,18 @@ export default function ListingsPage() {
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'ItemList',
+              name: 'AM Tycoons Inc. Inventory',
               itemListElement: cars.map((car, index) => ({
                 '@type': 'ListItem',
                 position: index + 1,
                 url: `${typeof window !== 'undefined' ? window.location.origin : ''}/car/${car.id}`,
                 name: car.title,
               })),
-            }).replace(/</g, '\\u003c').replace(/<\/script/gi, '<\\/script'),
+            }).replaceAll('<', '\\u003c').replaceAll('</script', '<\\/script'),
           }}
         />
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold text-foreground mb-4">Our Complete Inventory</h1>
+        <div className="mb-6 md:mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold text-foreground mb-3 md:mb-4">Our Complete Inventory</h1>
           <p className="text-lg text-muted-foreground">Browse our complete selection of quality pre-owned vehicles at <span className="font-bold">AM Tycoons Inc.</span></p>
           {cars.length > 0 && (
             <p className="text-sm text-muted-foreground mt-2">

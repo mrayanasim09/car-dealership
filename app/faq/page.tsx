@@ -1,6 +1,9 @@
 import React from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import type { Metadata } from 'next'
+import Script from 'next/script'
+import { headers } from 'next/headers'
 
 const faqs = [
   {
@@ -42,12 +45,33 @@ const faqs = [
 ]
 
 export default function FAQPage() {
+  const nonce = headers().get('x-nonce') || undefined
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-background py-12">
+      <main className="min-h-screen bg-background py-10 md:py-12">
         <div className="container mx-auto px-4 max-w-3xl">
-          <h1 className="text-4xl font-bold text-center mb-8">Frequently Asked Questions</h1>
+          <h1 className="text-4xl font-bold text-center mb-6 md:mb-8">Frequently Asked Questions</h1>
+          <Script
+            id="faq-jsonld"
+            type="application/ld+json"
+            nonce={nonce}
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'FAQPage',
+                mainEntity: faqs.map(f => ({
+                  '@type': 'Question',
+                  name: f.question,
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: f.answer,
+                  }
+                }))
+              }).replaceAll('<', '\\u003c').replaceAll('</script', '<\\/script'),
+            }}
+          />
           <div className="space-y-6">
             {faqs.map((faq, idx) => (
               <div key={idx} className="bg-card rounded-xl border border-border p-6">

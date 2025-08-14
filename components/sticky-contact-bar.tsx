@@ -2,14 +2,10 @@
 
 import { Phone, MessageSquare } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { CONTACT_NUMBERS } from "@/lib/config/contact"
 
 export function StickyContactBar() {
-  const contacts = [
-    { n: "+14243030386", l: "+1 424-303-0386" },
-    { n: "+13103507709", l: "+1 310-350-7709" },
-    { n: "+13109720341", l: "+1 310-972-0341" },
-    { n: "+13109048377", l: "+1 310-904-8377" },
-  ] as const
+  const contacts: { n: string; l: string }[] = CONTACT_NUMBERS.map(c => ({ n: c.e164, l: c.label }))
 
   const call = (num: string) => {
     window.location.href = `tel:${num}`
@@ -34,7 +30,7 @@ export function StickyContactBar() {
               <button
                 onClick={() => call(n)}
                 aria-label={`Call ${l}`}
-                className="text-foreground truncate"
+                className="text-foreground truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded"
               >
                 {l}
               </button>
@@ -43,7 +39,7 @@ export function StickyContactBar() {
               <button
                 onClick={() => call(n)}
                 aria-label={`Call ${l}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground min-h-[36px]"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
               >
                 <Phone className="h-4 w-4" />
                 <span className="text-xs font-medium">Call</span>
@@ -51,7 +47,7 @@ export function StickyContactBar() {
               <button
                 onClick={() => sms(n)}
                 aria-label={`SMS ${l}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-foreground min-h-[36px]"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-foreground min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span className="text-xs font-medium">SMS</span>

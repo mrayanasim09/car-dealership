@@ -5,13 +5,9 @@ import Image from "next/image"
 import { BrandName } from "@/components/brand-name"
 import { Phone, MessageCircle } from "lucide-react"
 import { Mail, MapPin } from "lucide-react"
+import { CONTACT_NUMBERS, CONTACT_EMAIL, BUSINESS_ADDRESS } from "@/lib/config/contact"
  
-const phoneNumbers = [
-  { e164: "+14243030386", label: "+1 424-303-0386" },
-  { e164: "+13103507709", label: "+1 310-350-7709" },
-  { e164: "+13109720341", label: "+1 310-972-0341" },
-  { e164: "+13109048377", label: "+1 310-904-8377" },
-]
+const phoneNumbers = CONTACT_NUMBERS
 
 export function Footer() {
   return (
@@ -43,14 +39,14 @@ export function Footer() {
                 <MapPin className="h-4 w-4 text-primary mt-1" aria-hidden="true" />
                 <div className="text-sm text-muted-foreground">
                   <div className="font-medium text-foreground">Our Location</div>
-                  <div><BrandName className="inline" /></div>
-                  <div>12440 Firestone Blvd, Suite 3025D</div>
-                  <div>Norwalk, CA 90650</div>
+                   <div><BrandName className="inline" /></div>
+                   <div>{BUSINESS_ADDRESS.streetAddress}</div>
+                   <div>{`${BUSINESS_ADDRESS.addressLocality}, ${BUSINESS_ADDRESS.addressRegion} ${BUSINESS_ADDRESS.postalCode}`}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center sm:justify-start gap-3">
                 <Mail className="h-4 w-4 text-primary" aria-hidden="true" />
-                <a className="text-sm text-muted-foreground hover:text-primary" href="mailto:info@amtycoonsinc.com">info@amtycoonsinc.com</a>
+                <a className="text-sm text-muted-foreground hover:text-primary whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 pt-2">
                 {phoneNumbers.map(({ e164, label }) => (
@@ -61,7 +57,7 @@ export function Footer() {
                     <div className="flex gap-1.5 flex-shrink-0 w-full sm:w-auto justify-start sm:justify-end">
                       <a
                         href={`tel:${e164}`}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors min-h-[36px]"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
                         aria-label={`Call ${label}`}
                       >
                         <Phone className="h-4 w-4" />
@@ -69,7 +65,7 @@ export function Footer() {
                       </a>
                       <a
                         href={`sms:${e164}`}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-accent text-foreground hover:bg-accent/80 transition-colors min-h-[36px]"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-accent text-foreground hover:bg-accent/80 transition-colors min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
                         aria-label={`SMS ${label}`}
                       >
                         <MessageCircle className="h-4 w-4" />

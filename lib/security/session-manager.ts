@@ -37,8 +37,20 @@ export interface SessionOptions {
 }
 
 export class SessionManager {
-  private static readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-  private static readonly REFRESH_SECRET = process.env.REFRESH_JWT_SECRET || 'your-refresh-secret'
+  private static readonly JWT_SECRET = (() => {
+    const v = process.env.JWT_SECRET
+    if (!v) {
+      throw new Error('[SessionManager] Missing JWT_SECRET')
+    }
+    return v
+  })()
+  private static readonly REFRESH_SECRET = (() => {
+    const v = process.env.REFRESH_JWT_SECRET || process.env.SESSION_SECRET
+    if (!v) {
+      throw new Error('[SessionManager] Missing REFRESH_JWT_SECRET/SESSION_SECRET')
+    }
+    return v
+  })()
   private static readonly DEFAULT_MAX_AGE = 24 * 60 * 60 * 1000 // 24 hours
   private static readonly REFRESH_THRESHOLD = 60 * 60 * 1000 // 1 hour
 

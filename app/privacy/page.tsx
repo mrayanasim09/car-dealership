@@ -1,5 +1,6 @@
 export const metadata = {
-  title: 'Privacy Policy - AM Tycoons Inc.'
+  title: 'Privacy Policy - AM Tycoons Inc.',
+  alternates: { canonical: '/privacy' },
 }
 
 const LAST_UPDATED = '2025-01-01'

@@ -6,6 +6,9 @@ import { BrandName } from "@/components/brand-name"
 // CSS animation utilities are used to avoid client boundary issues
 import { FeaturedCarsSSR } from "@/components/featured-cars-ssr"
 import Link from "next/link"
+import Script from 'next/script'
+import { headers } from 'next/headers'
+import { BUSINESS_NAME, BUSINESS_ADDRESS, CONTACT_EMAIL, CONTACT_NUMBERS } from '@/lib/config/contact'
 import { Button } from "@/components/ui/button"
 // import Image from "next/image"
 
@@ -15,12 +18,13 @@ import { Button } from "@/components/ui/button"
 
 
 export default function HomePage() {
+  const nonce = headers().get('x-nonce') || undefined
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       {/* Hero Section - tighter mobile spacing */}
-      <section className="relative hero-gradient text-primary-foreground py-6 md:py-8 lg:py-12 animate-fade-in">
+      <section className="relative hero-gradient text-primary-foreground py-5 md:py-7 lg:py-12 animate-fade-in">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 lg:mb-6 leading-tight">
@@ -29,16 +33,16 @@ export default function HomePage() {
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-4 md:mb-6 lg:mb-8 text-red-100 max-w-3xl mx-auto px-4">
               Discover premium pre-owned vehicles, quality cars, competitive prices, exceptional service, and easy financing—all in one place.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
+             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
               <div>
-              <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 active:scale-95 transition-transform text-base sm:text-lg px-6 md:px-8 py-3 touch-button">
+              <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 active:scale-95 transition-transform text-base sm:text-lg px-6 md:px-8 py-3 touch-button focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary">
                 <Link href="/inventory">
                   Browse Inventory
                 </Link>
               </Button>
               </div>
               <div>
-              <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 active:scale-95 transition-transform text-base sm:text-lg px-6 md:px-8 py-3 touch-button">
+              <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 active:scale-95 transition-transform text-base sm:text-lg px-6 md:px-8 py-3 touch-button focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary">
                 <Link href="/contact">
                   Contact Us
                 </Link>
@@ -49,8 +53,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section - tighter mobile spacing */}
-      <section className="py-6 md:py-8 lg:py-12 bg-background">
+       {/* Features Section - tighter mobile spacing */}
+      <section className="py-5 md:py-8 lg:py-12 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -80,8 +84,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Cars - live data */}
-       <section className="py-6 md:py-8 lg:py-12 bg-background">
+       {/* Featured Cars - live data */}
+       <section className="py-5 md:py-8 lg:py-12 bg-background">
         <div className="container mx-auto px-4">
             <div className="text-center mb-8 md:mb-12">
              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">Featured Vehicles</h2>
@@ -92,8 +96,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Contact CTA Section - accessible contrast */}
-      <section className="py-6 md:py-8 lg:py-12 bg-primary text-primary-foreground">
+       {/* Contact CTA Section - accessible contrast */}
+      <section className="py-5 md:py-8 lg:py-12 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Ready to Find Your Perfect Vehicle?
@@ -116,6 +120,31 @@ export default function HomePage() {
         </div>
       </section>
 
+      <Script
+        id="org-localbusiness-jsonld"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': ['Organization', 'LocalBusiness'],
+            name: BUSINESS_NAME,
+            url: 'https://amtycoonsinc.com',
+            email: CONTACT_EMAIL,
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: BUSINESS_ADDRESS.streetAddress,
+              addressLocality: BUSINESS_ADDRESS.addressLocality,
+              addressRegion: BUSINESS_ADDRESS.addressRegion,
+              postalCode: BUSINESS_ADDRESS.postalCode,
+              addressCountry: 'US'
+            },
+            telephone: CONTACT_NUMBERS.map(n => n.e164),
+            sameAs: [],
+          }).replaceAll('<', '\\u003c').replaceAll('</script', '<\\/script'),
+        }}
+      />
       <Footer />
     </div>
   )

@@ -1,13 +1,10 @@
 "use client"
 
 import { Phone, MessageSquare } from "lucide-react"
+import { CONTACT_NUMBERS } from "@/lib/config/contact"
 
-const CONTACTS = [
-  { n: "+14243030386", l: "+1 424-303-0386" },
-  { n: "+13103507709", l: "+1 310-350-7709" },
-  { n: "+13109720341", l: "+1 310-972-0341" },
-  { n: "+13109048377", l: "+1 310-904-8377" },
-] as const
+type TopContact = { n: string; l: string }
+const CONTACTS: TopContact[] = CONTACT_NUMBERS.map(c => ({ n: c.e164, l: c.label }))
 
 export function ContactTopbar() {
   return (

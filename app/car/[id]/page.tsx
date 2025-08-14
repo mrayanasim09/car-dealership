@@ -42,6 +42,7 @@ export async function generateMetadata({ params }: CarPageProps): Promise<Metada
     title: `${car.title} - AM Tycoons Inc`,
     description: `${car.year} ${car.make} ${car.model} for sale at AM Tycoons Inc. ${Number(car.mileage ?? 0).toLocaleString()} miles, located in ${car.location}. Contact us for more information.`,
     keywords: `${car.make}, ${car.model}, ${car.year}, used car, pre-owned vehicle, ${car.location}, AM Tycoons Inc`,
+    alternates: { canonical: `/car/${params.id}` },
     openGraph: {
       title: `${car.title} - AM Tycoons Inc`,
       description: `${car.year} ${car.make} ${car.model} for sale at AM Tycoons Inc. ${car.mileage.toLocaleString()} miles, located in ${car.location}.`,
@@ -79,19 +80,27 @@ export default async function CarPage({ params }: CarPageProps) {
           dangerouslySetInnerHTML={{
             __html: safeJsonLd({
               '@context': 'https://schema.org',
-              '@type': 'Product',
+              '@type': ['Product', 'Vehicle'],
               name: car.title,
               brand: car.make,
               model: car.model,
-              releaseDate: String(car.year),
+              vehicleModelDate: String(car.year),
+              mileageFromOdometer: car.mileage ? { '@type': 'QuantitativeValue', value: car.mileage, unitCode: 'SMI' } : undefined,
+              vehicleIdentificationNumber: car.vin || undefined,
+              vehicleEngine: car.engine || undefined,
+              color: car.exteriorColor || undefined,
+              vehicleTransmission: car.transmission || undefined,
               offers: {
                 '@type': 'Offer',
                 priceCurrency: 'USD',
                 price: car.price,
                 availability: 'https://schema.org/InStock',
+                url: `https://amtycoonsinc.com/car/${car.id}`,
+                itemCondition: 'https://schema.org/UsedCondition',
               },
               image: Array.isArray(car.images) ? car.images : [],
               description: car.description,
+              sku: car.id,
             }),
           }}
         />

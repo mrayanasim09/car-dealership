@@ -2,7 +2,7 @@ import bundleAnalyzer from '@next/bundle-analyzer'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   experimental: {
     // optimizeCss: true, // Disabled due to critters module issues
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'react-icons'],

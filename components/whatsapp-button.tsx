@@ -2,16 +2,12 @@
 
 import { MessageCircle, Phone, MessageSquare, X } from "lucide-react"
 import { useState } from "react"
+import { CONTACT_NUMBERS } from "@/lib/config/contact"
 
 export function WhatsAppButton() {
   const [isExpanded, setIsExpanded] = useState(false)
   
-  const phoneNumbers = [
-    { number: "+14243030386", label: "+1 424-303-0386", short: "424" },
-    { number: "+13103507709", label: "+1 310-350-7709", short: "310" },
-    { number: "+13109720341", label: "+1 310-972-0341", short: "310" },
-    { number: "+13109048377", label: "+1 310-904-8377", short: "310" }
-  ]
+  const phoneNumbers = CONTACT_NUMBERS.map(c => ({ number: c.e164, label: c.label, short: c.label.slice(4, 7) }))
 
   const handlePhoneCall = (phoneNumber: string) => {
     window.open(`tel:${phoneNumber}`, '_self')

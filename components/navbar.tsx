@@ -9,10 +9,12 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Menu, X } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 // ContactTopbar removed per spec
+import { usePathname } from "next/navigation"
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10)
@@ -49,16 +51,16 @@ export function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6 flex-1 justify-end overflow-x-auto">
-            <Link href="/" className="text-foreground/80 hover:text-primary transition-colors font-medium">
+            <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className="text-foreground/80 hover:text-primary transition-colors font-medium">
               Home
             </Link>
-            <Link href="/listings" className="text-foreground/80 hover:text-primary transition-colors font-medium">
+            <Link href="/listings" aria-current={pathname === '/listings' ? 'page' : undefined} className="text-foreground/80 hover:text-primary transition-colors font-medium">
               Inventory
             </Link>
-            <Link href="/about" className="text-foreground/80 hover:text-primary transition-colors font-medium">
+            <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined} className="text-foreground/80 hover:text-primary transition-colors font-medium">
               About
             </Link>
-            <Link href="/contact" className="text-foreground/80 hover:text-primary transition-colors font-medium">
+            <Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined} className="text-foreground/80 hover:text-primary transition-colors font-medium">
               Contact
             </Link>
           </div>
@@ -78,7 +80,7 @@ export function Navbar() {
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               aria-controls="mobile-nav"
               aria-expanded={isMenuOpen}
-              className="p-2 text-foreground hover:text-primary"
+              className="p-2 text-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded"
             >
               {isMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
             </Button>
@@ -95,10 +97,10 @@ export function Navbar() {
                 <ThemeToggle />
               </div>
               <div className="px-4 py-4 space-y-4" tabIndex={-1}>
-                <Link href="/" className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Home</Link>
-                <Link href="/listings" className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Inventory</Link>
-                <Link href="/about" className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>About</Link>
-                <Link href="/contact" className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Contact</Link>
+                <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Home</Link>
+                <Link href="/listings" aria-current={pathname === '/listings' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Inventory</Link>
+                <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>About</Link>
+                <Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Contact</Link>
               </div>
             </div>
           </DialogContent>

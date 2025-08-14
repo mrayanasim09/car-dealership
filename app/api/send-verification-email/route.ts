@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRateLimitMiddleware, RateLimiter } from '@/lib/security/rate-limiter'
 import { z } from 'zod'
 
 // Input validation schema
@@ -8,29 +9,19 @@ const emailSchema = z.object({
   type: z.enum(['verification', 'reset']).default('verification')
 })
 
-// Rate limiting for email sending
-const emailRateLimit = new Map<string, { count: number; lastSent: number }>()
-const MAX_EMAILS_PER_HOUR = 10
-const RATE_LIMIT_WINDOW = 60 * 60 * 1000 // 1 hour
+// Distributed rate limiting for email sending (uses Redis when configured)
+const emailLimiterCore = new RateLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  maxAttempts: 10,
+  blockDurationMs: 60 * 60 * 1000,
+})
+const emailLimiter = createRateLimitMiddleware(emailLimiterCore)
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting check
-    const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-    const now = Date.now()
-    const rateLimit = emailRateLimit.get(clientIP) || { count: 0, lastSent: 0 }
-    
-    // Reset counter if window has passed
-    if (now - rateLimit.lastSent > RATE_LIMIT_WINDOW) {
-      rateLimit.count = 0
-    }
-    
-    if (rateLimit.count >= MAX_EMAILS_PER_HOUR) {
-      return NextResponse.json({
-        success: false,
-        error: 'Rate limit exceeded. Please try again later.'
-      }, { status: 429 })
-    }
+    // Rate limiting check (distributed safe)
+    const blocked = await emailLimiter(request)
+    if (blocked) return blocked
 
     const body = await request.json()
 
@@ -44,15 +35,14 @@ export async function POST(request: NextRequest) {
 
     const { email, code, type } = validationResult.data
 
-    // Update rate limit
-    rateLimit.count++
-    rateLimit.lastSent = now
-    emailRateLimit.set(clientIP, rateLimit)
+    // Record success on limiter after sending email (see bottom)
 
     // Send email using production service
     const emailSent = await sendEmail(email, code, type)
 
     if (emailSent) {
+      // Reset limiter on success where appropriate
+      await emailLimiterCore.recordSuccess(request)
       return NextResponse.json({
         success: true,
         message: 'Verification email sent successfully'

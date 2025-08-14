@@ -72,7 +72,7 @@ export default function BrowsePage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-6 md:py-8">
+      <div className="container mx-auto px-4 py-5 md:py-8">
         <Script
           id="browse-jsonld"
           type="application/ld+json"
@@ -91,7 +91,7 @@ export default function BrowsePage() {
             }).replace(/</g, '\\u003c').replace(/<\/script/gi, '<\\/script'),
           }}
         />
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 md:mb-8">
           <h1 className="text-4xl font-bold">Browse Our Cars</h1>
           <p className="text-lg text-muted-foreground">Discover quality pre-owned vehicles.</p>
         </div>

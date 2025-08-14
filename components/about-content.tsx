@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { BrandName } from "@/components/brand-name"
 import { Badge } from "@/components/ui/badge"
 import { Users, Award, Shield, Heart, Star, CheckCircle, MapPin, Phone, Mail } from "lucide-react"
+import { CONTACT_NUMBERS, CONTACT_EMAIL } from "@/lib/config/contact"
 // Subtle CSS animations are used for performance and to avoid client boundary issues
 
 export function AboutContent() {
@@ -151,10 +152,9 @@ export function AboutContent() {
                 <Phone className="h-10 w-10 md:h-12 md:w-12 text-primary mx-auto mb-3 md:mb-4" />
                 <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">Call Us</h3>
                 <div className="space-y-1 text-sm md:text-base text-muted-foreground">
-                  <p>+1 424-303-0386</p>
-                  <p>+1 310-350-7709</p>
-                  <p>+1 310-972-0341</p>
-                  <p>+1 310-904-8377</p>
+                  {CONTACT_NUMBERS.map(c => (
+                    <p key={c.e164}>{c.label}</p>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -164,7 +164,7 @@ export function AboutContent() {
                 <Mail className="h-10 w-10 md:h-12 md:w-12 text-primary mx-auto mb-3 md:mb-4" />
                 <h3 className="text-lg md:text-xl font-semibold text-foreground mb-2 md:mb-3">Email Us</h3>
                 <p className="text-sm md:text-base text-muted-foreground">
-                  info@amtycoonsinc.com<br />               
+                  {CONTACT_EMAIL}<br />               
                 </p>
               </CardContent>
             </Card>

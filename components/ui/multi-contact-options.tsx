@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Phone, MessageSquare, MessageCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { CONTACT_NUMBERS } from "@/lib/config/contact"
 
 interface ContactOption {
   number: string
@@ -17,12 +18,7 @@ interface MultiContactOptionsProps {
   variant?: "compact" | "expanded" | "dropdown"
 }
 
-const CONTACT_NUMBERS: ContactOption[] = [
-  { number: "+14243030386", label: "+1 424-303-0386" },
-  { number: "+13103507709", label: "+1 310-350-7709" },
-  { number: "+13109720341", label: "+1 310-972-0341" },
-  { number: "+13109048377", label: "+1 310-904-8377" }
-]
+const CONTACT_NUMBERS_INTERNAL: ContactOption[] = CONTACT_NUMBERS.map(c => ({ number: c.e164, label: c.label }))
 
 export function MultiContactOptions({ 
   className, 
@@ -30,7 +26,7 @@ export function MultiContactOptions({
   variant = "compact" 
 }: MultiContactOptionsProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const [selectedNumber, setSelectedNumber] = useState(CONTACT_NUMBERS[0])
+  const [selectedNumber, setSelectedNumber] = useState(CONTACT_NUMBERS_INTERNAL[0])
 
   const handleCall = (number: string) => {
     window.location.href = `tel:${number}`
@@ -54,23 +50,26 @@ export function MultiContactOptions({
   if (variant === "compact") {
     return (
       <div className={cn("flex flex-wrap gap-2", className)}>
-        <Button
-          onClick={() => handleCall(CONTACT_NUMBERS[0].number)}
+          <Button
+          onClick={() => handleCall(CONTACT_NUMBERS_INTERNAL[0].number)}
           className={cn("bg-blue-600 hover:bg-blue-700", sizeClasses[size])}
+            aria-label={`Call ${CONTACT_NUMBERS_INTERNAL[0].label}`}
         >
           <Phone className="h-4 w-4 mr-1" />
           Call
         </Button>
-        <Button
-          onClick={() => handleSMS(CONTACT_NUMBERS[0].number)}
+          <Button
+          onClick={() => handleSMS(CONTACT_NUMBERS_INTERNAL[0].number)}
           className={cn("bg-green-600 hover:bg-green-700", sizeClasses[size])}
+            aria-label={`SMS ${CONTACT_NUMBERS_INTERNAL[0].label}`}
         >
           <MessageSquare className="h-4 w-4 mr-1" />
           SMS
         </Button>
-        <Button
-          onClick={() => handleWhatsApp(CONTACT_NUMBERS[0].number)}
+          <Button
+          onClick={() => handleWhatsApp(CONTACT_NUMBERS_INTERNAL[0].number)}
           className={cn("bg-emerald-600 hover:bg-emerald-700", sizeClasses[size])}
+            aria-label={`WhatsApp ${CONTACT_NUMBERS_INTERNAL[0].label}`}
         >
           <MessageCircle className="h-4 w-4 mr-1" />
           WhatsApp
@@ -85,7 +84,7 @@ export function MultiContactOptions({
         <CardContent className="p-4">
           <h4 className="font-semibold text-foreground mb-3">Contact Us</h4>
           <div className="space-y-3">
-            {CONTACT_NUMBERS.map((contact, index) => (
+            {CONTACT_NUMBERS_INTERNAL.map((contact, index) => (
               <div key={index} className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Phone className="h-3 w-3 text-red-600" />
@@ -134,7 +133,7 @@ export function MultiContactOptions({
       {isExpanded && (
         <Card className="absolute top-full left-0 right-0 mt-1 z-50 shadow-lg">
           <CardContent className="p-2">
-            {CONTACT_NUMBERS.map((contact, index) => (
+            {CONTACT_NUMBERS_INTERNAL.map((contact, index) => (
               <div key={index} className="flex items-center justify-between p-2 hover:bg-accent rounded">
                 <button
                   onClick={() => {
@@ -151,6 +150,7 @@ export function MultiContactOptions({
                     variant="ghost"
                     onClick={() => handleCall(contact.number)}
                     className="h-6 w-6 p-0"
+                    aria-label={`Call ${contact.label}`}
                   >
                     <Phone className="h-3 w-3" />
                   </Button>
@@ -159,6 +159,7 @@ export function MultiContactOptions({
                     variant="ghost"
                     onClick={() => handleSMS(contact.number)}
                     className="h-6 w-6 p-0"
+                    aria-label={`SMS ${contact.label}`}
                   >
                     <MessageSquare className="h-3 w-3" />
                   </Button>
@@ -167,6 +168,7 @@ export function MultiContactOptions({
                     variant="ghost"
                     onClick={() => handleWhatsApp(contact.number)}
                     className="h-6 w-6 p-0"
+                    aria-label={`WhatsApp ${contact.label}`}
                   >
                     <MessageCircle className="h-3 w-3" />
                   </Button>

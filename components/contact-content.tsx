@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { MapPin, Mail, Clock, Send, Car, CreditCard, Wrench, Phone, MessageSquare } from "lucide-react"
 import Script from 'next/script'
 import { useCspNonce } from '@/hooks/use-csp-nonce'
+import { CONTACT_NUMBERS, CONTACT_EMAIL, BUSINESS_NAME, BUSINESS_ADDRESS } from '@/lib/config/contact'
 
 export function ContactContent() {
   const nonce = useCspNonce()
@@ -145,7 +146,7 @@ export function ContactContent() {
     {
       icon: MapPin,
       title: "Visit Our Office",
-      details: ["AM Tycoons Inc", "12440 Firestone Blvd, Suite 3025D", "Norwalk, 90650 CA"],
+      details: [BUSINESS_NAME, BUSINESS_ADDRESS.streetAddress, `${BUSINESS_ADDRESS.addressLocality}, ${BUSINESS_ADDRESS.addressRegion} ${BUSINESS_ADDRESS.postalCode}`],
       action: "Get Directions",
       actionUrl: "https://maps.app.goo.gl/f4gvfxgLNSoqSJAaA",
     },
@@ -153,9 +154,9 @@ export function ContactContent() {
     {
       icon: Mail,
       title: "Email Us",
-      details: ["info@amtycoonsinc.com", "24/7 Email Support"],
+      details: [CONTACT_EMAIL, "24/7 Email Support"],
       action: "Send Email",
-      actionUrl: "mailto:info@amtycoonsinc.com",
+      actionUrl: `mailto:${CONTACT_EMAIL}`,
     },
     // SMS card replaced by dedicated numbers section below
   ]
@@ -244,12 +245,7 @@ export function ContactContent() {
           </div>
           {/* Mobile horizontal scroll, grid on md+ */}
           <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:overflow-visible">
-            {[
-              { e164: "+14243030386", label: "+1 424-303-0386" },
-              { e164: "+13103507709", label: "+1 310-350-7709" },
-              { e164: "+13109720341", label: "+1 310-972-0341" },
-              { e164: "+13109048377", label: "+1 310-904-8377" }
-            ].map((phone, index) => (
+            {CONTACT_NUMBERS.map((phone, index) => (
               <Card key={index} className="bg-card border-border min-w-[220px] snap-center md:min-w-0">
                 <CardContent className="p-4 md:p-6 text-center">
                   <p className="text-lg md:text-xl font-bold text-primary mb-3 md:mb-4">{phone.label}</p>

@@ -1,5 +1,6 @@
 export const metadata = {
-  title: 'Terms & Conditions - AM Tycoons Inc.'
+  title: 'Terms & Conditions - AM Tycoons Inc.',
+  alternates: { canonical: '/terms' },
 }
 
 const LAST_UPDATED = '2025-01-01'
