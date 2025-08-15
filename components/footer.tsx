@@ -44,7 +44,7 @@ export function Footer() {
                    <div>{`${BUSINESS_ADDRESS.addressLocality}, ${BUSINESS_ADDRESS.addressRegion} ${BUSINESS_ADDRESS.postalCode}`}</div>
                 </div>
               </div>
-              <div className="flex items-center justify-center sm:justify-start gap-3">
+              <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary" aria-hidden="true" />
                 <a className="text-sm text-muted-foreground hover:text-primary whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
               </div>
