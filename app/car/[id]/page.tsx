@@ -193,6 +193,8 @@ type DbCar = {
   is_inventory?: unknown
   isFeatured?: unknown
   isInventory?: unknown
+  sold?: unknown
+  sold_at?: unknown
 }
 
 function mapDbCarToCar(db: DbCar | null): Car | null {
@@ -236,5 +238,7 @@ function mapDbCarToCar(db: DbCar | null): Car | null {
     createdAt: db.created_at ? new Date(db.created_at as string) : undefined,
     isFeatured: 'is_featured' in db ? Boolean(db.is_featured) : Boolean(db.isFeatured),
     isInventory: 'is_inventory' in db ? Boolean(db.is_inventory) : Boolean(db.isInventory),
+    sold: Boolean(db.sold),
+    soldAt: db.sold_at ? new Date(db.sold_at as string) : undefined,
   }
 }

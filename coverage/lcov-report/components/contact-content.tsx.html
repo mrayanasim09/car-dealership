@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/79</span>
+                <span class='fraction'>0/82</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/78</span>
+                <span class='fraction'>0/81</span>
             </div>
         
             
@@ -521,7 +521,11 @@
 <a name='L456'></a><a href='#L456'>456</a>
 <a name='L457'></a><a href='#L457'>457</a>
 <a name='L458'></a><a href='#L458'>458</a>
-<a name='L459'></a><a href='#L459'>459</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -535,7 +539,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -726,6 +733,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -765,11 +773,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -991,10 +999,13 @@ import { Label } from <span class="cstat-no" title="statement not covered" >"@/c
 import { Card, CardContent, CardHeader, CardTitle } from <span class="cstat-no" title="statement not covered" >"@/components/ui/card"</span>
 &nbsp;
 import { useToast } from <span class="cstat-no" title="statement not covered" >"@/components/ui/use-toast"</span>
-import { MapPin, Mail, Clock, Send, Car, CreditCard, Wrench } from <span class="cstat-no" title="statement not covered" >"lucide-react"</span>
+import { MapPin, Mail, Clock, Send, Car, CreditCard, Wrench, Phone, MessageSquare } from <span class="cstat-no" title="statement not covered" >"lucide-react"</span>
 import Script from <span class="cstat-no" title="statement not covered" >'next/script'</span>
+import { useCspNonce } from <span class="cstat-no" title="statement not covered" >'@/hooks/use-csp-nonce'</span>
+import { CONTACT_NUMBERS, CONTACT_EMAIL, BUSINESS_NAME, BUSINESS_ADDRESS } from <span class="cstat-no" title="statement not covered" >'@/lib/config/contact'</span>
 &nbsp;
 export function <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >ContactContent() {</span></span>
+  const nonce = <span class="cstat-no" title="statement not covered" >useCspNonce()</span>
   const [formData, setFormData] = <span class="cstat-no" title="statement not covered" >useState({</span>
     name: "",
     email: "",
@@ -1124,7 +1135,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
     {
       icon: MapPin,
       title: "Visit Our Office",
-      details: ["AM Tycoons Inc", "12440 Firestone Blvd, Suite 3025D", "Norwalk, 90650 CA"],
+      details: [BUSINESS_NAME, BUSINESS_ADDRESS.streetAddress, `${BUSINESS_ADDRESS.addressLocality}, ${BUSINESS_ADDRESS.addressRegion} ${BUSINESS_ADDRESS.postalCode}`],
       action: "Get Directions",
       actionUrl: "https://maps.app.goo.gl/f4gvfxgLNSoqSJAaA",
     },
@@ -1132,9 +1143,9 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
     {
       icon: Mail,
       title: "Email Us",
-      details: ["info@amtycoonsinc.com", "24/7 Email Support"],
+      details: [CONTACT_EMAIL, "24/7 Email Support"],
       action: "Send Email",
-      actionUrl: "mailto:info@amtycoonsinc.com",
+      actionUrl: `mailto:${CONTACT_EMAIL}`,
     },
     // SMS card replaced by dedicated numbers section below
   ]
@@ -1169,6 +1180,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
         &lt;Script
           src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
           strategy="lazyOnload"
+          nonce={nonce}
         /&gt;
       ) : null}
       {/* Compact Hero */}
@@ -1213,35 +1225,35 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
         &lt;/div&gt;
       &lt;/section&gt;
 &nbsp;
-      {/* Phone Numbers Section - show all 4 with Call/SMS (no labels) */}
+      {/* Phone Numbers Section - compact on mobile, unchanged on tablet/desktop */}
       &lt;section className="py-6 md:py-8 bg-background"&gt;
         &lt;div className="container mx-auto px-4"&gt;
           &lt;div className="text-center mb-8 md:mb-10"&gt;
             &lt;h2 className="text-3xl font-bold text-foreground mb-2"&gt;Contact Numbers&lt;/h2&gt;
             &lt;p className="text-muted-foreground max-w-2xl mx-auto"&gt;Call or text us anytime. We&amp;apos;re here to help you find your perfect vehicle.&lt;/p&gt;
           &lt;/div&gt;
-          &lt;div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"&gt;
-            {[
-              { e164: "+14243030386", label: "+1 424-303-0386" },
-              { e164: "+13103507709", label: "+1 310-350-7709" },
-              { e164: "+13109720341", label: "+1 310-972-0341" },
-              { e164: "+13109048377", label: "+1 310-904-8377" }
-            ].map(<span class="fstat-no" title="function not covered" >(p</span>hone, index) =&gt; (
-<span class="cstat-no" title="statement not covered" >              &lt;Card key={index} c</span>lassName="bg-card border-border"&gt;
-                &lt;CardContent className="p-6 text-center"&gt;
-                  &lt;p className="text-xl font-bold text-primary mb-4"&gt;{phone.label}&lt;/p&gt;
-                  &lt;div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 justify-center"&gt;
+          {/* Mobile horizontal scroll, grid on md+ */}
+          &lt;div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:overflow-visible"&gt;
+            {CONTACT_NUMBERS.map(<span class="fstat-no" title="function not covered" >(p</span>hone, index) =&gt; (
+<span class="cstat-no" title="statement not covered" >              &lt;Card key={index} c</span>lassName="bg-card border-border min-w-[220px] snap-center md:min-w-0"&gt;
+                &lt;CardContent className="p-4 md:p-6 text-center"&gt;
+                  &lt;p className="text-lg md:text-xl font-bold text-primary mb-3 md:mb-4"&gt;{phone.label}&lt;/p&gt;
+                  &lt;div className="flex flex-col gap-2 md:flex-row md:gap-2 justify-center items-stretch"&gt;
                     &lt;a
                       href={`tel:${phone.e164}`}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-lg font-medium transition-colors touch-button"
+                      aria-label={`Call ${phone.label}`}
+                      className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 md:px-4 md:py-3 rounded-full font-medium transition-colors touch-button md:flex-1 text-sm md:text-base"
                     &gt;
-                      Call Now
+                      &lt;Phone className="h-4 w-4" /&gt;
+                      &lt;span&gt;Call&lt;/span&gt;
                     &lt;/a&gt;
                     &lt;a
                       href={`sms:${phone.e164}`}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-3 rounded-lg font-medium transition-colors touch-button"
+                      aria-label={`Text ${phone.label}`}
+                      className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-2 md:px-4 md:py-3 rounded-full font-medium transition-colors touch-button md:flex-1 text-sm md:text-base"
                     &gt;
-                      Send SMS
+                      &lt;MessageSquare className="h-4 w-4" /&gt;
+                      &lt;span&gt;SMS&lt;/span&gt;
                     &lt;/a&gt;
                   &lt;/div&gt;
                 &lt;/CardContent&gt;
@@ -1444,7 +1456,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-12T02:09:21.748Z
+                at 2025-08-25T23:03:51.952Z
             </div>
         <script src="../prettify.js"></script>
         <script>

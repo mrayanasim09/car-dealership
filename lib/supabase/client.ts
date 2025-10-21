@@ -14,7 +14,7 @@ if (!supabaseUrl || !anonKey) {
   }
 }
 
-export const supabasePublic = createClient(supabaseUrl || '', anonKey || '', {
+export const supabasePublic = createClient(supabaseUrl || 'https://mock.supabase.co', anonKey || 'mock-key', {
   auth: {
     persistSession: false,
     autoRefreshToken: false,

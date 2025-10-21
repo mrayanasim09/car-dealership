@@ -1,0 +1,203 @@
+import { NextRequest } from 'next/server'
+import { POST } from '@/app/api/contact/route'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+
+// Mock Supabase
+jest.mock('@/lib/supabase/admin', () => ({
+  supabaseAdmin: {
+    from: jest.fn(() => ({
+      insert: jest.fn(() => ({
+        error: null
+      }))
+    }))
+  }
+}))
+
+// Mock reCAPTCHA verification
+jest.mock('@/lib/security/recaptcha', () => ({
+  verifyRecaptcha: jest.fn(() => ({
+    success: true,
+    score: 0.9
+  }))
+}))
+
+// Mock rate limiter
+jest.mock('@/lib/security/rate-limiter', () => ({
+  createRateLimitMiddleware: jest.fn(() => jest.fn(() => null)),
+  rateLimiters: {
+    contactForm: {}
+  }
+}))
+
+describe('Contact API', () => {
+  const mockSupabase = supabaseAdmin as jest.Mocked<typeof supabaseAdmin>
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  const createMockRequest = (body: any): NextRequest => {
+    const request = new NextRequest('http://localhost:3000/api/contact', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-for': '127.0.0.1'
+      }
+    })
+    return request
+  }
+
+  describe('POST /api/contact', () => {
+    it('should successfully submit a contact form', async () => {
+      const contactData = {
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '1234567890',
+        message: 'I am interested in your cars',
+        recaptchaToken: 'valid-token'
+      }
+
+      const request = createMockRequest(contactData)
+      const response = await POST(request)
+      const result = await response.json()
+
+      expect(response.status).toBe(201)
+      expect(result.success).toBe(true)
+      expect(result.message).toBe('Contact form submitted successfully')
+
+      // Verify Supabase was called
+      expect(mockSupabase.from).toHaveBeenCalledWith('messages')
+      expect(mockSupabase.from('messages').insert).toHaveBeenCalledWith({
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '1234567890',
+        subject: 'General Inquiry',
+        message: 'I am interested in your cars'
+      })
+    })
+
+    it('should handle missing required fields', async () => {
+      const contactData = {
+        name: '',
+        email: 'invalid-email',
+        phone: '123',
+        message: 'Short'
+      }
+
+      const request = createMockRequest(contactData)
+      const response = await POST(request)
+      const result = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(result.error).toBe('Invalid input data')
+      expect(result.details).toBeDefined()
+    })
+
+    it('should handle spam detection', async () => {
+      const contactData = {
+        name: 'Buy Now',
+        email: 'spam@example.com',
+        phone: '1234567890',
+        message: 'Click here to buy now! Limited time offer! Free money!',
+        recaptchaToken: 'valid-token'
+      }
+
+      const request = createMockRequest(contactData)
+      const response = await POST(request)
+      const result = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(result.error).toBe('Message appears to be spam. Please try again.')
+    })
+
+    it('should handle Supabase errors', async () => {
+      // Mock Supabase error
+      mockSupabase.from.mockReturnValue({
+        insert: jest.fn(() => ({
+          error: new Error('Database connection failed')
+        }))
+      } as any)
+
+      const contactData = {
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '1234567890',
+        message: 'I am interested in your cars',
+        recaptchaToken: 'valid-token'
+      }
+
+      const request = createMockRequest(contactData)
+      const response = await POST(request)
+      const result = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(result.error).toBe('Failed to submit contact form')
+    })
+
+    it('should sanitize input data', async () => {
+      const contactData = {
+        name: '<script>alert("xss")</script>John Doe',
+        email: 'john@example.com',
+        phone: '1234567890',
+        message: 'I am interested in your cars<script>alert("xss")</script>',
+        recaptchaToken: 'valid-token'
+      }
+
+      const request = createMockRequest(contactData)
+      const response = await POST(request)
+      const result = await response.json()
+
+      expect(response.status).toBe(201)
+      expect(result.success).toBe(true)
+
+      // Verify sanitized data was sent to Supabase
+      expect(mockSupabase.from('messages').insert).toHaveBeenCalledWith({
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '1234567890',
+        subject: 'General Inquiry',
+        message: 'I am interested in your cars'
+      })
+    })
+
+    it('should handle car-specific inquiries', async () => {
+      const contactData = {
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '0987654321',
+        message: 'I want to know more about this car',
+        carId: 'car-123',
+        subject: 'Car Inquiry',
+        preferredContact: 'email',
+        recaptchaToken: 'valid-token'
+      }
+
+      const request = createMockRequest(contactData)
+      const response = await POST(request)
+      const result = await response.json()
+
+      expect(response.status).toBe(201)
+      expect(result.success).toBe(true)
+
+      // Verify car-specific data was included
+      expect(mockSupabase.from('messages').insert).toHaveBeenCalledWith({
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '0987654321',
+        subject: 'Car Inquiry',
+        message: 'I want to know more about this car'
+      })
+    })
+
+    it('should reject non-POST methods', async () => {
+      // Test GET method
+      const request = new NextRequest('http://localhost:3000/api/contact', {
+        method: 'GET'
+      })
+      
+      const response = await POST(request)
+      expect(response.status).toBe(405)
+    })
+  })
+})

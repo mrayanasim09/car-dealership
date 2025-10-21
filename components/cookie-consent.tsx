@@ -2,84 +2,137 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { X, Cookie } from 'lucide-react'
+
+
+interface CookiePreferences {
+  necessary: boolean
+  analytics: boolean
+  marketing: boolean
+  functional: boolean
+}
 
 export function CookieConsent() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [showBanner, setShowBanner] = useState(false)
+  const [, setPreferences] = useState<CookiePreferences>({
+    necessary: true, // Always true, cannot be disabled
+    analytics: false,
+    marketing: false,
+    functional: false
+  })
 
   useEffect(() => {
+    // Check if user has already made a choice
     const consent = localStorage.getItem('amtycoons-cookie-consent')
-    const consentDate = localStorage.getItem('amtycoons-cookie-date')
-    
     if (!consent) {
-      setIsVisible(true)
-    } else if (consent === 'declined' && consentDate) {
-      // Show again after 30 days if declined
-      const declinedDate = new Date(consentDate)
-      const now = new Date()
-      const daysSinceDeclined = (now.getTime() - declinedDate.getTime()) / (1000 * 60 * 60 * 24)
-      
-      if (daysSinceDeclined >= 30) {
-        setIsVisible(true)
+      setShowBanner(true)
+    } else {
+      try {
+        const savedPreferences = JSON.parse(consent)
+        setPreferences(savedPreferences)
+        applyCookiePreferences(savedPreferences)
+      } catch {
+        setShowBanner(true)
       }
     }
   }, [])
 
-  const acceptCookies = () => {
-    localStorage.setItem('amtycoons-cookie-consent', 'accepted')
-    localStorage.setItem('amtycoons-cookie-date', new Date().toISOString())
-    setIsVisible(false)
+  const applyCookiePreferences = (prefs: CookiePreferences) => {
+    // Apply analytics cookies
+    if (prefs.analytics) {
+      // Enable Google Analytics
+      if (!window.gtag) {
+        const gtagFn = function(...args: unknown[]) {
+          // Initialize gtag queue if it doesn't exist
+          if (!gtagFn.q) {
+            gtagFn.q = []
+          }
+          gtagFn.q.push(args)
+        }
+        gtagFn.q = [] as unknown[]
+        window.gtag = gtagFn
+      }
+    } else {
+      // Disable Google Analytics
+      window.gtag = function() {}
+    }
+
+    // Apply marketing cookies
+    if (prefs.marketing) {
+      // Enable marketing tracking
+      localStorage.setItem('amtycoons-marketing-enabled', 'true')
+    } else {
+      localStorage.removeItem('amtycoons-marketing-enabled')
+    }
+
+    // Apply functional cookies
+    if (prefs.functional) {
+      // Enable enhanced functionality
+      localStorage.setItem('amtycoons-functional-enabled', 'true')
+    } else {
+      localStorage.removeItem('amtycoons-functional-enabled')
+    }
   }
 
-  const declineCookies = () => {
-    localStorage.setItem('amtycoons-cookie-consent', 'declined')
-    localStorage.setItem('amtycoons-cookie-date', new Date().toISOString())
-    setIsVisible(false)
+  const handleAcceptAll = () => {
+    const allAccepted: CookiePreferences = {
+      necessary: true,
+      analytics: true,
+      marketing: true,
+      functional: true
+    }
+    
+    setPreferences(allAccepted)
+    localStorage.setItem('amtycoons-cookie-consent', JSON.stringify(allAccepted))
+    applyCookiePreferences(allAccepted)
+    setShowBanner(false)
   }
 
-  if (!isVisible) return null
+  const handleRejectAll = () => {
+    const minimal: CookiePreferences = {
+      necessary: true,
+      analytics: false,
+      marketing: false,
+      functional: false
+    }
+    
+    setPreferences(minimal)
+    localStorage.setItem('amtycoons-cookie-consent', JSON.stringify(minimal))
+    applyCookiePreferences(minimal)
+    setShowBanner(false)
+  }
+
+  if (!showBanner) {
+    return null
+  }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg max-w-full overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6">
-          <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
-            <Cookie className="h-6 w-6 text-red-600 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">
-                AM Tycoons Inc. Cookie Policy
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-normal break-words max-w-full">
-                We use essential cookies for site functionality, analytics to improve your car browsing experience, 
-                and marketing cookies to show relevant vehicle offers. Your data helps us provide better service.
-              </p>
-            </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground mb-2">
+              We use cookies to enhance your experience
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              We use cookies and similar technologies to help personalize content, provide social media features, 
+              and analyze our traffic. We also share information about your use of our site with our social media, 
+              advertising, and analytics partners.
+            </p>
           </div>
           
-          <div className="flex items-center gap-2 w-full lg:w-auto lg:ml-6 justify-end flex-none">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button
-              onClick={acceptCookies}
-              size="sm"
-              className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-4 py-3 touch-button"
-            >
-              Accept All
-            </Button>
-            <Button
-              onClick={declineCookies}
               variant="outline"
               size="sm"
-              className="flex-1 sm:flex-none text-xs px-4 py-3 border-border text-foreground hover:bg-accent touch-button"
+              onClick={handleRejectAll}
             >
-              Decline
+              Reject All
             </Button>
             <Button
-              onClick={declineCookies}
-              variant="ghost"
               size="sm"
-              className="p-3 text-muted-foreground hover:text-foreground touch-target"
-              aria-label="Close cookie notice"
+              onClick={handleAcceptAll}
             >
-              <X className="h-4 w-4" />
+              Accept All
             </Button>
           </div>
         </div>

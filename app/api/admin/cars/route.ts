@@ -29,7 +29,10 @@ const carSchema = z.object({
   whatsapp: z.string().optional(),
   approved: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
-  isInventory: z.boolean().optional()
+  isInventory: z.boolean().optional(),
+  sold: z.boolean().optional(),
+  soldAt: z.string().nullable().optional(),
+  displayOrder: z.number().int().min(0).optional()
 })
 
 const updateCarSchema = carSchema.partial().extend({
@@ -51,7 +54,7 @@ export async function GET(request: NextRequest) {
     const { data: carsData, error } = await supabaseAdmin
       .from('cars')
       .select('*')
-      .order('listed_at', { ascending: false })
+      .order('display_order', { ascending: true })
     const cars = (error || !carsData) ? [] : carsData
     
     // Filter sensitive data for non-super admins
@@ -253,6 +256,8 @@ export async function PUT(request: NextRequest) {
       if (updateData.documents !== undefined) updateObject.documents = updateData.documents
       if (updateData.isFeatured !== undefined) updateObject.is_featured = updateData.isFeatured
       if (updateData.isInventory !== undefined) updateObject.is_inventory = updateData.isInventory
+      if (updateData.sold !== undefined) updateObject.sold = updateData.sold
+      if (updateData.soldAt !== undefined) updateObject.sold_at = updateData.soldAt
 
       // Handle contact object
       if (updateData.phone !== undefined || updateData.whatsapp !== undefined) {

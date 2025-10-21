@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { CookieConsent } from '@/components/cookie-consent'
 import { ErrorMonitor } from '@/components/error-monitor'
+import { AccessibilityAudit } from '@/components/accessibility-audit'
 
 import { Providers } from '@/components/providers'
 import './globals.css'
@@ -116,6 +117,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         
+        {/* Favicon */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        
         {/* Preload critical resources (logo preload removed to avoid large PNG on critical path) */}
         <link rel="preload" href="/favicon.ico" as="image" type="image/x-icon" />
         
@@ -143,6 +150,7 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_VERCEL_SPEED_INSIGHTS === '1' && <SpeedInsights />}
         <CookieConsent />
         <ErrorMonitor />
+        <AccessibilityAudit />
         {/* AI Chatbot is now gated and mounted from Providers after idle */}
       </body>
     </html>

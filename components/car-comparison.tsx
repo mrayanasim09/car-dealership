@@ -77,7 +77,10 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
         setIsOpen(open)
         if (!open) onClose?.()
       }}>
-        <DialogContent className="w-full max-w-7xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent 
+          className="w-full max-w-7xl max-h-[90vh] overflow-y-auto p-0"
+          aria-describedby="comparison-description"
+        >
           <Card className="w-full border-0 shadow-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <DialogHeader>
@@ -85,6 +88,7 @@ export function CarComparison({ availableCars, onClose }: CarComparisonProps) {
                   <Scale className="h-5 w-5 mr-2" aria-hidden="true" />
                   Compare Cars ({selectedCars.length}/4)
                 </DialogTitle>
+
               </DialogHeader>
               <div className="flex gap-2">
                 {selectedCars.length > 0 && (

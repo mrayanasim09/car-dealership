@@ -37,7 +37,7 @@ export default function ListingsPage() {
           .select('*')
           .eq('approved', true)
           .eq('is_inventory', true)
-          .order('listed_at', { ascending: false })
+          .order('display_order', { ascending: true })
         type CarRow = {
           id: string
           title: string
@@ -54,6 +54,8 @@ export default function ListingsPage() {
           listed_at: string | null
           exterior_color?: string | null
           interior_color?: string | null
+          sold?: boolean
+          sold_at?: string | null
         }
         const rows = (error || !data) ? [] : (data as CarRow[])
         const fetchedCars: Car[] = rows.map(r => ({
@@ -70,6 +72,8 @@ export default function ListingsPage() {
           isFeatured: Boolean(r.is_featured),
           isInventory: Boolean(r.is_inventory),
           listedAt: r.listed_at ? new Date(r.listed_at) : new Date(),
+          sold: Boolean(r.sold),
+          soldAt: r.sold_at ? new Date(r.sold_at) : null,
           description: '',
           contact: { phone: '', whatsapp: '' },
           rating: 0,

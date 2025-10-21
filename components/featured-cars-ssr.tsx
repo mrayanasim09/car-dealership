@@ -15,6 +15,8 @@ export async function FeaturedCarsSSR() {
     images: string[]
     is_featured?: boolean
     is_inventory?: boolean
+    sold?: boolean
+    sold_at?: string | null
   }
 
   const { data, error } = await supabasePublic
@@ -22,7 +24,7 @@ export async function FeaturedCarsSSR() {
     .select('*')
     .eq('approved', true)
     .eq('is_featured', true)
-    .order('listed_at', { ascending: false })
+    .order('display_order', { ascending: true })
     .limit(6)
 
   const cars: Car[] = (error || !data)
@@ -40,6 +42,8 @@ export async function FeaturedCarsSSR() {
         approved: true,
         isFeatured: Boolean(r.is_featured),
         isInventory: Boolean(r.is_inventory),
+        sold: Boolean(r.sold),
+        soldAt: r.sold_at ? new Date(r.sold_at) : null,
         description: '',
         contact: { phone: '', whatsapp: '' },
         rating: 0,

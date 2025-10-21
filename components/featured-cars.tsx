@@ -17,7 +17,7 @@ export function FeaturedCars() {
           .select('*')
           .eq('approved', true)
           .eq('is_featured', true)
-          .order('listed_at', { ascending: false })
+          .order('display_order', { ascending: true })
           .limit(6)
         type CarRow = {
           id: string
@@ -29,8 +29,32 @@ export function FeaturedCars() {
           price: number
           location: string
           images: string[]
+          sold?: boolean
+          sold_at?: string | null
         }
-        setCars((error || !data) ? [] : (data as CarRow[] as unknown as Car[]))
+        const carsData = (error || !data) ? [] : (data as CarRow[])
+        const mappedCars: Car[] = carsData.map(r => ({
+          id: r.id,
+          title: r.title,
+          make: r.make,
+          model: r.model,
+          year: r.year,
+          mileage: r.mileage,
+          price: r.price,
+          location: r.location,
+          images: r.images,
+          approved: true,
+          isFeatured: true,
+          isInventory: true,
+          sold: Boolean(r.sold),
+          soldAt: r.sold_at ? new Date(r.sold_at) : null,
+          description: '',
+          contact: { phone: '', whatsapp: '' },
+          rating: 0,
+          reviews: [],
+          listedAt: new Date(),
+        }))
+        setCars(mappedCars)
       } catch (error) {
         console.error("Error loading featured cars:", error)
         setCars([])

@@ -34,17 +34,17 @@ export function Navbar() {
         aria-label="Primary"
       >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between h-24 md:h-32">
           {/* Brand */}
-          <div className="flex items-center gap-3 shrink-0">
-            <Link href="/" className="flex items-center gap-2 md:gap-3 group" aria-label="AM Tycoons Inc. Home" onClick={closeMenu}>
-              <div className="relative h-12 w-20 md:h-16 md:w-28 transition-transform duration-200 group-hover:scale-[1.02]">
-                <Image src="/optimized/am-tycoons-logo.webp" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="(max-width: 768px) 120px, 160px" priority={false} />
+          <div className="flex items-center gap-0 shrink-0">
+            <Link href="/" className="flex items-center gap-0 md:gap-1 group" aria-label="AM Tycoons Inc. Home" onClick={closeMenu}>
+              <div className="relative h-24 w-40 md:h-32 md:w-56 transition-transform duration-200 group-hover:scale-[1.02]">
+                <Image src="/optimized/am-tycoons-logo.webp" alt="AM Tycoons Inc. Logo" fill className="object-contain" sizes="(max-width: 768px) 240px, 320px" priority={false} />
               </div>
-              {/* Brand text - both mobile and desktop clickable */}
-              <div className="leading-tight">
-                <div className="text-base md:text-lg font-bold text-foreground tracking-tight"><BrandName /></div>
-                <div className="hidden sm:block text-[10px] md:text-xs text-muted-foreground">FIND YOUR PERFECT DRIVE</div>
+              {/* Brand text - restructured layout */}
+              <div className="leading-tight -ml-1">
+                <div className="text-lg md:text-3xl font-bold text-foreground tracking-tight"><BrandName /></div>
+                <div className="text-[8px] md:text-xs text-muted-foreground ml-1">FIND YOUR PERFECT DRIVE</div>
               </div>
             </Link>
           </div>
@@ -96,11 +96,11 @@ export function Navbar() {
               <div className="px-4 pt-4 pb-2 flex justify-end">
                 <ThemeToggle />
               </div>
-              <div className="px-4 py-4 space-y-4" tabIndex={-1}>
-                <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Home</Link>
-                <Link href="/listings" aria-current={pathname === '/listings' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Inventory</Link>
-                <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>About</Link>
-                <Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors" onClick={closeMenu}>Contact</Link>
+              <div className="px-4 py-4 space-y-6" tabIndex={-1}>
+                <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-2" onClick={closeMenu}>Home</Link>
+                <Link href="/listings" aria-current={pathname === '/listings' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-2" onClick={closeMenu}>Inventory</Link>
+                <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-2" onClick={closeMenu}>About</Link>
+                <Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined} className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-2" onClick={closeMenu}>Contact</Link>
               </div>
             </div>
           </DialogContent>
@@ -108,7 +108,7 @@ export function Navbar() {
       </div>
       </nav>
       {/* Spacer to offset fixed header */}
-      <div className="h-16 md:h-28" aria-hidden="true" />
+      <div className="h-24 md:h-32" aria-hidden="true" />
     </>
   )
 }

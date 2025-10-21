@@ -21,7 +21,7 @@ const defaultFaqs = [
   },
   {
     question: "Can I schedule a test drive?",
-    answer: "Absolutely! Contact us to schedule a test drive at your convenience."
+    answer: "Absolutely! Contact us to schedule a test drive for today at your convenience.",
   }
 ];
 

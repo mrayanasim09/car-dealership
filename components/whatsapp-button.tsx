@@ -1,89 +1,48 @@
 "use client"
 
-import { MessageCircle, Phone, MessageSquare, X } from "lucide-react"
-import { useState } from "react"
-import { CONTACT_NUMBERS } from "@/lib/config/contact"
+import { Phone } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
-export function WhatsAppButton() {
-  const [isExpanded, setIsExpanded] = useState(false)
-  
-  const phoneNumbers = CONTACT_NUMBERS.map(c => ({ number: c.e164, label: c.label, short: c.label.slice(4, 7) }))
+interface WhatsAppButtonProps {
+  phoneNumber: string
+  className?: string
+  variant?: "default" | "outline" | "ghost"
+  size?: "sm" | "md" | "lg"
+}
 
-  const handlePhoneCall = (phoneNumber: string) => {
-    window.open(`tel:${phoneNumber}`, '_self')
+export function WhatsAppButton({ 
+  phoneNumber, 
+  className = "",
+  variant = "default",
+  size = "md"
+}: WhatsAppButtonProps) {
+  const handleClick = () => {
+    const message = "Hi! I'm interested in learning more about your vehicles."
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
   }
 
-  const handleSMS = (phoneNumber: string) => {
-    window.open(`sms:${phoneNumber}`, '_self')
+  const sizeClasses = {
+    sm: "h-9 px-3 text-sm",
+    md: "h-11 px-4 text-base",
+    lg: "h-14 px-6 text-lg"
   }
 
-  const handleWhatsApp = (phoneNumber: string) => {
-    const message = encodeURIComponent("Hi! I'm interested in your car inventory. Can you help me find the perfect vehicle?")
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank')
+  const variantClasses = {
+    default: "bg-green-600 hover:bg-green-700 text-white border-green-600",
+    outline: "bg-transparent hover:bg-green-50 text-green-700 border-green-600 hover:text-green-800",
+    ghost: "bg-transparent hover:bg-green-50 text-green-700 hover:text-green-800"
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 md:bottom-6 md:right-6">
-      {/* Expanded buttons */}
-      <div className={`flex flex-col space-y-2 mb-3 transition-all duration-300 ease-in-out ${
-        isExpanded 
-          ? 'opacity-100 translate-y-0 scale-100' 
-          : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
-      }`}>
-        {phoneNumbers.map((phone, index) => (
-          <div key={index} className="flex flex-col space-y-1">
-            <button
-              onClick={() => handlePhoneCall(phone.number)}
-              className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs font-medium min-w-[120px] md:min-w-[140px]"
-              title={`Call ${phone.label}`}
-              aria-label={`Call ${phone.label}`}
-            >
-              <Phone className="h-3 w-3 mr-2 flex-shrink-0 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">Call {phone.short}</span>
-              <span className="sm:hidden">Call</span>
-            </button>
-            
-            <button
-              onClick={() => handleSMS(phone.number)}
-              className="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs font-medium min-w-[120px] md:min-w-[140px]"
-              title={`SMS ${phone.label}`}
-              aria-label={`Send SMS to ${phone.label}`}
-            >
-              <MessageSquare className="h-3 w-3 mr-2 flex-shrink-0 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">SMS {phone.short}</span>
-              <span className="sm:hidden">SMS</span>
-            </button>
-            
-            <button
-              onClick={() => handleWhatsApp(phone.number)}
-              className="flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs font-medium min-w-[120px] md:min-w-[140px]"
-              title={`WhatsApp ${phone.label}`}
-              aria-label={`Send WhatsApp message to ${phone.label}`}
-            >
-              <MessageCircle className="h-3 w-3 mr-2 flex-shrink-0 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">WhatsApp {phone.short}</span>
-              <span className="sm:hidden">WhatsApp</span>
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Main toggle button */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className={`bg-red-600 hover:bg-red-700 text-white p-3 md:p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
-          isExpanded ? 'rotate-45 bg-gray-600 hover:bg-gray-700' : ''
-        }`}
-        aria-label={isExpanded ? "Close contact options" : "Open contact options"}
-        title={isExpanded ? "Close contact options" : "Contact us"}
-      >
-        {isExpanded ? (
-          <X className="h-5 w-5 md:h-6 md:w-6" />
-        ) : (
-          <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />
-        )}
-      </button>
-    </div>
+    <Button
+      onClick={handleClick}
+      className={`${variantClasses[variant]} ${sizeClasses[size]} ${className} font-semibold shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95`}
+      aria-label={`Contact via WhatsApp at ${phoneNumber}`}
+    >
+      <Phone className="mr-2 h-4 w-4" data-testid="phone-icon" />
+      WhatsApp
+    </Button>
   )
 }
 

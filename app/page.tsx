@@ -103,7 +103,7 @@ export default function HomePage() {
             Ready to Find Your Perfect Vehicle?
           </h2>
           <p className="max-w-2xl mx-auto mb-6 md:mb-8">
-            Contact us today to discuss your needs and schedule a viewing. Our team is here to help you find the perfect vehicle.
+            Contact us today to discuss your needs and schedule a viewing for today. Our team is here to help you find the perfect vehicle.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <Button asChild size="lg" className="bg-background text-foreground hover:bg-accent px-8 py-3 touch-button focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-foreground">

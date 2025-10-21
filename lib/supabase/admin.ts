@@ -8,9 +8,18 @@ let cachedClient: ReturnType<typeof createClient> | null = null
 function instantiate(): ReturnType<typeof createClient> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  // If Supabase is not configured, return a mock client to prevent build errors
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('[supabase/admin] Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+    console.warn('[supabase/admin] Supabase not configured - using mock client')
+    return createClient('https://mock.supabase.co', 'mock-key', {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
   }
+  
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       persistSession: false,

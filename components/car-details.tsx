@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { ContactToBuy } from "@/components/contact-to-buy"
 import { SimilarCars } from "@/components/similar-cars"
 import { 
@@ -62,7 +63,14 @@ export function CarDetails({ car, similarCars = [], loading = false }: CarDetail
           {/* Key Details */}
           <Card>
             <CardHeader>
-              <CardTitle>Vehicle Details</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                Vehicle Details
+                {car.sold && (
+                  <Badge className="bg-red-600 text-white font-bold">
+                    SOLD
+                  </Badge>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

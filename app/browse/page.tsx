@@ -32,7 +32,7 @@ export default function BrowsePage() {
           .from('cars')
           .select('*')
           .eq('approved', true)
-          .order('listed_at', { ascending: false })
+          .order('display_order', { ascending: true })
         if (error) throw error
         setAllCars((data || []) as unknown as Car[])
       } catch (err: unknown) {

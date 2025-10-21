@@ -316,21 +316,11 @@ export class SessionManager {
   // Clean up expired sessions (run periodically)
   static cleanupExpiredSessions(): void {
     // This method is not used in production; could be adapted to use SCAN metrics
-    const allKeys: string[] = []
-    const now = new Date()
     let cleanedCount = 0
     
-    for (const key of allKeys) {
-      const session = null as unknown as SessionData | null
-      if (session) {
-        // Remove sessions older than 7 days
-        const daysSinceLastAccess = (now.getTime() - session.lastAccessedAt.getTime()) / (1000 * 60 * 60 * 24)
-        if (daysSinceLastAccess > 7) {
-        // noop in placeholder
-          cleanedCount++
-        }
-      }
-    }
+    // Placeholder for session cleanup logic
+    // In production, this would iterate through actual sessions
+    cleanedCount = 0
     
     if (cleanedCount > 0) {
       console.log(`Cleaned up ${cleanedCount} expired sessions`)
@@ -344,31 +334,17 @@ export class SessionManager {
     temporarySessions: number
     adminCounts: Record<string, number>
   } {
-    const allKeys: string[] = []
-    const now = new Date()
     const stats = {
-      totalSessions: allKeys.length,
+      totalSessions: 0,
       activeSessions: 0,
       temporarySessions: 0,
       adminCounts: {} as Record<string, number>
     }
     
-    for (const key of allKeys) {
-      const session = null as unknown as SessionData | null
-      if (session) {
-        // Consider active if accessed within last hour
-        const minutesSinceLastAccess = (now.getTime() - session.lastAccessedAt.getTime()) / (1000 * 60)
-        if (minutesSinceLastAccess < 60) {
-          stats.activeSessions++
-        }
-        
-        if (session.isTemporary) {
-          stats.temporarySessions++
-        }
-        
-        stats.adminCounts[session.adminId] = (stats.adminCounts[session.adminId] || 0) + 1
-      }
-    }
+    // Placeholder for session statistics logic
+    // In production, this would iterate through actual sessions
+    stats.activeSessions = 0
+    stats.temporarySessions = 0
     
     return stats
   }

@@ -20,7 +20,7 @@ const AUTO_RESPONSES: { [key: string]: string } = {
   'financing': 'We offer competitive financing options with approved credit. Our finance team works with multiple lenders to get you the best rates. Contact us at (424) 303-0386 to discuss your options.',
   'warranty': 'All our vehicles come with a comprehensive inspection report. Extended warranties are available for most vehicles. Contact our sales team for specific warranty details.',
   'trade': 'Yes, we accept trade-ins! We can provide a trade-in estimate based on your vehicle\'s condition, mileage, and market value. Bring your car in for a free appraisal.',
-  'appointment': 'You can schedule a viewing by calling us at (424) 303-0386 or texting any of our contact numbers. We\'re also available via SMS for quick questions.',
+  'appointment': 'You can schedule a viewing for today by calling us at (424) 303-0386 or texting any of our contact numbers. We\'re also available via SMS for quick questions.',
   'inventory': 'Our inventory is updated daily. You can browse all available vehicles on our listings page. If you\'re looking for something specific, let us know and we\'ll help you find it!',
   'location': 'We\'re located in Los Angeles, CA. Contact us at (424) 303-0386 for our exact address and directions.',
   'contact': 'You can reach us at:\n• Primary: (424) 303-0386\n• Secondary: (310) 350-7709\n• Sales Team: (310) 972-0341\n• Customer Service: (310) 904-8377\nAll numbers support both calls and SMS!',
@@ -133,7 +133,7 @@ export function AIChatbot() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-20 right-4 z-50 md:bottom-4">
+      <div className="fixed bottom-20 right-4 z-50 md:bottom-4 pb-[env(safe-area-inset-bottom)]">
         <Button
           onClick={() => setIsOpen(true)}
           className="h-14 w-14 rounded-full bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
@@ -154,7 +154,7 @@ export function AIChatbot() {
   }
 
   return (
-    <div className="fixed bottom-20 right-4 z-50 md:bottom-4">
+    <div className="fixed bottom-20 right-4 z-50 md:bottom-4 pb-[env(safe-area-inset-bottom)]">
       <Card className={`w-80 h-96 ${isMinimized ? 'h-12' : 'h-96'} transition-all duration-300 shadow-xl border-2`}>
         <CardHeader className="p-3 bg-red-600 text-white rounded-t-lg">
           <div className="flex items-center justify-between">

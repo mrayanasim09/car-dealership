@@ -1,7 +1,6 @@
 import React from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import type { Metadata } from 'next'
 import Script from 'next/script'
 import { headers } from 'next/headers'
 

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -114,18 +114,27 @@
 <a name='L49'></a><a href='#L49'>49</a>
 <a name='L50'></a><a href='#L50'>50</a>
 <a name='L51'></a><a href='#L51'>51</a>
-<a name='L52'></a><a href='#L52'>52</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -135,6 +144,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,7 +164,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -168,14 +192,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client"
 &nbsp;
 import { Phone, MessageSquare } from <span class="cstat-no" title="statement not covered" >"lucide-react"</span>
+import { usePathname } from <span class="cstat-no" title="statement not covered" >"next/navigation"</span>
+import { CONTACT_NUMBERS } from <span class="cstat-no" title="statement not covered" >"@/lib/config/contact"</span>
 &nbsp;
 export function <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >StickyContactBar() {</span></span>
-  const contacts = <span class="cstat-no" title="statement not covered" >[</span>
-    { n: "+14243030386", l: "+1 424-303-0386" },
-    { n: "+13103507709", l: "+1 310-350-7709" },
-    { n: "+13109720341", l: "+1 310-972-0341" },
-    { n: "+13109048377", l: "+1 310-904-8377" },
-  ] as const
+  const contacts: { n: string; l: string }[] = <span class="cstat-no" title="statement not covered" >CONTACT_NUMBERS.map(<span class="fstat-no" title="function not covered" >c =&gt; (<span class="cstat-no" title="statement not covered" >{</span> n: c.e164, l: c.label }))</span></span>
 &nbsp;
   const call = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(n</span>um: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    window.location.href = `tel:${num}`</span>
@@ -185,29 +206,44 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
 <span class="cstat-no" title="statement not covered" >    window.location.href = `sms:${num}`</span>
   }
 &nbsp;
+  // Hide on car detail pages (prevent overlap with floating CTA)
+  const pathname = <span class="cstat-no" title="statement not covered" >usePathname()</span>
+  const isCarDetail = <span class="cstat-no" title="statement not covered" >pathname?.startsWith('/car/')</span>
+<span class="cstat-no" title="statement not covered" >  if (isCarDetail) <span class="cstat-no" title="statement not covered" >return null</span></span>
+&nbsp;
   return (
-    &lt;div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40"&gt;
+    &lt;div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40 pb-[env(safe-area-inset-bottom)]"&gt;
       &lt;div className="max-w-5xl mx-auto px-4 py-2 space-y-2"&gt;
         {contacts.map(<span class="fstat-no" title="function not covered" >({</span> n, l }) =&gt; (
-<span class="cstat-no" title="statement not covered" >          &lt;div key={n} c</span>lassName="flex items-center justify-between text-sm"&gt;
-            &lt;div className="flex items-center gap-2"&gt;
+<span class="cstat-no" title="statement not covered" >          &lt;div key={n} c</span>lassName="flex flex-wrap items-center justify-between gap-2 text-sm"&gt;
+            &lt;div className="flex items-center gap-2 min-w-0"&gt;
               &lt;Phone className="h-4 w-4 text-red-600" aria-hidden="true" /&gt;
               &lt;button
                 onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >c</span>all(n)}</span>
                 aria-label={`Call ${l}`}
-                className="text-foreground"
+                className="text-foreground truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded"
               &gt;
                 {l}
               &lt;/button&gt;
             &lt;/div&gt;
-            &lt;button
-              onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>ms(n)}</span>
-              aria-label={`SMS ${l}`}
-              className="text-red-600 font-medium flex items-center gap-1"
-            &gt;
-              &lt;MessageSquare className="h-4 w-4" /&gt;
-              &lt;span&gt;SMS&lt;/span&gt;
-            &lt;/button&gt;
+            &lt;div className="flex gap-2 w-full xs:w-auto justify-start xs:justify-end"&gt;
+              &lt;button
+                onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >c</span>all(n)}</span>
+                aria-label={`Call ${l}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+              &gt;
+                &lt;Phone className="h-4 w-4" /&gt;
+                &lt;span className="text-xs font-medium"&gt;Call&lt;/span&gt;
+              &lt;/button&gt;
+              &lt;button
+                onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>ms(n)}</span>
+                aria-label={`SMS ${l}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-foreground min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+              &gt;
+                &lt;MessageSquare className="h-4 w-4" /&gt;
+                &lt;span className="text-xs font-medium"&gt;SMS&lt;/span&gt;
+              &lt;/button&gt;
+            &lt;/div&gt;
           &lt;/div&gt;
         ))}
       &lt;/div&gt;
@@ -223,7 +259,7 @@ export function <span class="cstat-no" title="statement not covered" ><span clas
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-12T02:09:21.748Z
+                at 2025-08-25T23:03:51.952Z
             </div>
         <script src="../prettify.js"></script>
         <script>

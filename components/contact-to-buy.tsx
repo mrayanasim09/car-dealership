@@ -27,7 +27,7 @@ export function ContactToBuy({ car, variant = "card" }: ContactToBuyProps) {
 
   const handleScheduleViewing = (phoneNumber: string) => {
     const message = encodeURIComponent(
-      `Hi! I'd like to schedule a viewing for the ${car.title} (${car.year}). When would be a good time?`
+      `Hi! I'd like to schedule a viewing for the ${car.title} (${car.year}) today. When would be a good time?`
     )
     // Use SMS with body prefilled (works on most devices)
     window.open(`sms:${phoneNumber}?&body=${message}`, '_self')
@@ -127,7 +127,7 @@ export function ContactToBuy({ car, variant = "card" }: ContactToBuyProps) {
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground touch-button"
             >
               <Calendar className="h-4 w-4 mr-2" />
-              Schedule Viewing
+              Schedule Today
             </Button>
           )}
           <Button asChild className="w-full bg-card border border-border hover:bg-accent text-foreground touch-button">

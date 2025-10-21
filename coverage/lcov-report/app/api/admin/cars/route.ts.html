@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/156</span>
+                <span class='fraction'>0/159</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/137</span>
+                <span class='fraction'>0/142</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/132</span>
+                <span class='fraction'>0/134</span>
             </div>
         
             
@@ -427,7 +427,13 @@
 <a name='L362'></a><a href='#L362'>362</a>
 <a name='L363'></a><a href='#L363'>363</a>
 <a name='L364'></a><a href='#L364'>364</a>
-<a name='L365'></a><a href='#L365'>365</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -460,6 +466,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -680,6 +687,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -706,8 +714,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -816,6 +828,7 @@ const carSchema = <span class="cstat-no" title="statement not covered" >z.object
   fuelType: z.string().optional(),
   features: z.array(z.string()).optional(),
   images: z.array(z.string().url()).optional(),
+  documents: z.array(z.object({ name: z.string().max(200), url: z.string().url().max(1000) })).optional(),
   vin: z.string().optional(),
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
@@ -1042,6 +1055,7 @@ export async function <span class="cstat-no" title="statement not covered" ><spa
 <span class="cstat-no" title="statement not covered" >      if (updateData.fuelType !== undefined) <span class="cstat-no" title="statement not covered" >updateObject.fuel_type = updateData.fuelType</span></span>
 <span class="cstat-no" title="statement not covered" >      if (updateData.features !== undefined) <span class="cstat-no" title="statement not covered" >updateObject.features = updateData.features</span></span>
 <span class="cstat-no" title="statement not covered" >      if (updateData.images !== undefined) <span class="cstat-no" title="statement not covered" >updateObject.images = updateData.images</span></span>
+<span class="cstat-no" title="statement not covered" >      if (updateData.documents !== undefined) <span class="cstat-no" title="statement not covered" >updateObject.documents = updateData.documents</span></span>
 <span class="cstat-no" title="statement not covered" >      if (updateData.isFeatured !== undefined) <span class="cstat-no" title="statement not covered" >updateObject.is_featured = updateData.isFeatured</span></span>
 <span class="cstat-no" title="statement not covered" >      if (updateData.isInventory !== undefined) <span class="cstat-no" title="statement not covered" >updateObject.is_inventory = updateData.isInventory</span></span>
 &nbsp;
@@ -1071,8 +1085,12 @@ export async function <span class="cstat-no" title="statement not covered" ><spa
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ success: true, id: updated[0].id })</span>
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('Error updating car:', error)</span>
+      const err = <span class="cstat-no" title="statement not covered" >error as unknown as { message?: string; code?: string; details?: string; hint?: string }</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json(</span>
-        { error: 'Failed to update car', details: error instanceof Error ? error.message : 'Unknown error' },
+        { 
+          error: 'Failed to update car',
+          details: err?.message || err?.code || err?.details || err?.hint || 'Unknown error'
+        },
         { status: 500 }
       )
     }
@@ -1162,7 +1180,7 @@ export async function <span class="cstat-no" title="statement not covered" ><spa
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-12T02:09:21.748Z
+                at 2025-08-25T23:03:51.952Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

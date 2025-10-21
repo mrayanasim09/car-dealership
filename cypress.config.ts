@@ -10,6 +10,7 @@ export default defineConfig({
     experimentalStudio: true,
     setupNodeEvents(on, config) {
       require('@cypress/code-coverage/task')(on, config)
+      require('@percy/cypress/task')(on, config)
       return config
     },
   },
