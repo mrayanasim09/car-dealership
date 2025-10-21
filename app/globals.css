@@ -198,12 +198,24 @@
 }
 .animate-wheel-spin { animation: wheel-spin 0.6s linear infinite; }
 
-/* Production-ready mobile optimizations */
+/* Mobile-first scrolling improvements */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+}
+
+/* Mobile-optimized touch targets */
 @media (max-width: 768px) {
   /* Larger touch targets on mobile */
   button, a, input, select, textarea {
     min-height: 44px;
     min-width: 44px;
+    touch-action: manipulation;
   }
   
   /* Better spacing for mobile */
@@ -232,6 +244,18 @@
   .mobile-heading {
     @apply text-xl font-bold;
   }
+  
+  /* Mobile scrolling containers */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  .mobile-container {
+    overflow-x: hidden;
+    width: 100%;
+  }
 }
 
 /* Production-ready touch feedback */
@@ -259,9 +283,6 @@
 }
 
 /* Improved scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
 
 /* Better focus indicators for accessibility */
 *:focus {

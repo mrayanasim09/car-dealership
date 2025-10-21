@@ -90,13 +90,13 @@ function SortableCarItem({
             SOLD
           </Badge>
         )}
-        {/* Drag handle */}
+        {/* Drag handle - mobile optimized */}
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-2 left-2 bg-white/90 hover:bg-white rounded p-1 cursor-grab active:cursor-grabbing shadow-sm"
+          className="absolute top-2 left-2 bg-white/90 hover:bg-white rounded p-2 cursor-grab active:cursor-grabbing shadow-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
-          <GripVertical className="h-4 w-4 text-gray-600" />
+          <GripVertical className="h-5 w-5 text-gray-600" />
         </div>
       </div>
 
@@ -105,7 +105,7 @@ function SortableCarItem({
         <p className="text-2xl font-bold text-primary mb-4">{formatPrice(car.price)}</p>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          <Button onClick={() => onEdit(car)} variant="outline" size="sm" className="border-border">
+          <Button onClick={() => onEdit(car)} variant="outline" size="sm" className="border-border min-h-[44px] touch-manipulation">
             <Edit className="h-4 w-4 mr-1" />
             Edit
           </Button>
@@ -114,7 +114,7 @@ function SortableCarItem({
             onClick={() => onApprovalToggle(car.id, !car.approved)}
             variant="outline"
             size="sm"
-            className={car.approved ? "text-yellow-600" : "text-primary"}
+            className={`min-h-[44px] touch-manipulation ${car.approved ? "text-yellow-600" : "text-primary"}`}
           >
             {car.approved ? (
               <>
@@ -133,7 +133,7 @@ function SortableCarItem({
             onClick={() => onSoldToggle(car.id, !car.sold)} 
             variant="outline" 
             size="sm" 
-            className={car.sold ? "text-green-600" : "text-primary"}
+            className={`min-h-[44px] touch-manipulation ${car.sold ? "text-green-600" : "text-primary"}`}
           >
             {car.sold ? (
               <>
@@ -148,7 +148,7 @@ function SortableCarItem({
             )}
           </Button>
 
-          <Button onClick={() => onDelete(car.id)} variant="outline" size="sm" className="text-destructive" disabled={!(role === 'admin' || role === 'super_admin')}>
+          <Button onClick={() => onDelete(car.id)} variant="outline" size="sm" className="text-destructive min-h-[44px] touch-manipulation" disabled={!(role === 'admin' || role === 'super_admin')}>
             <Trash2 className="h-4 w-4 mr-1" />
             Delete
           </Button>
@@ -356,18 +356,18 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Car Inventory</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           {hasUnsavedChanges && (
             <Button 
               onClick={handleSaveOrder} 
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white min-h-[44px] touch-manipulation"
               disabled={!(role === 'editor' || role === 'admin' || role === 'super_admin')}
             >
               <Save className="h-4 w-4 mr-2" />
               Save Order
             </Button>
           )}
-          <Button onClick={handleAddCar} className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={!(role === 'editor' || role === 'admin' || role === 'super_admin')}>
+          <Button onClick={handleAddCar} className="bg-primary hover:bg-primary/90 text-primary-foreground min-h-[44px] touch-manipulation" disabled={!(role === 'editor' || role === 'admin' || role === 'super_admin')}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Car
           </Button>
@@ -396,7 +396,7 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={localCars.map(car => car.id)} strategy={verticalListSortingStrategy}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 pb-8">
             {localCars.map((car) => (
               <SortableCarItem
                 key={car.id}

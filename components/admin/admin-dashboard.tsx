@@ -92,7 +92,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="px-4 lg:px-6 py-8 pb-24 max-w-7xl mx-auto">
+      <div className="px-4 lg:px-6 py-8 pb-24 max-w-7xl mx-auto min-h-screen">
         {/* Status section removed (Firebase references deleted) */}
 
         {/* Stats Cards */}

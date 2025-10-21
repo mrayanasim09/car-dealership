@@ -42,7 +42,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? "block" : "hidden"}`}>
         <div className="fixed inset-0 bg-background/50" onClick={() => setSidebarOpen(false)}></div>
-        <div className="fixed inset-y-0 left-0 w-64 bg-background shadow-lg border-r border-border">
+        <div className="fixed inset-y-0 left-0 w-64 bg-background shadow-lg border-r border-border overflow-y-auto overscroll-contain">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center space-x-2">
               {/* Logo Image - Same as navbar for consistency */}
@@ -187,8 +187,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
 
-        {/* Page content - center within content column on large screens */}
-        <main className="p-4 sm:p-6 bg-background max-w-7xl mx-auto lg:max-w-none lg:mx-0 lg:px-6 overflow-x-auto overscroll-y-contain [scrollbar-width:none] [-ms-overflow-style:none]">
+        {/* Page content - mobile-first scrolling */}
+        <main className="min-h-screen p-4 sm:p-6 bg-background max-w-7xl mx-auto lg:max-w-none lg:mx-0 lg:px-6 overflow-x-hidden">
           {children}
         </main>
       </div>
