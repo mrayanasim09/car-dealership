@@ -13,20 +13,18 @@ const reorderSchema = z.object({
   })).min(1, 'At least one car order is required')
 })
 
-type ReorderInput = z.infer<typeof reorderSchema>
-
 const guard = createRateLimitMiddleware(rateLimiters.api)
 
 // PUT - Reorder cars
 export async function PUT(request: NextRequest) {
   try {
-    const user = await authManager.requireAdmin()
+    await authManager.requireAdmin()
     const blocked = await guard(request)
     if (blocked) return blocked
 
     // Verify CSRF token
     const csrfToken = request.headers.get('x-csrf-token')
-    if (!csrfToken || !csrf.verify(csrfToken)) {
+    if (!csrfToken || !csrf.verify(request)) {
       return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 })
     }
 

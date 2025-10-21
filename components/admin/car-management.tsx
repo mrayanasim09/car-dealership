@@ -352,14 +352,6 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
     setShowForm(true)
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
