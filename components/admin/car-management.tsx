@@ -90,11 +90,15 @@ function SortableCarItem({
             SOLD
           </Badge>
         )}
-        {/* Drag handle - mobile optimized */}
+        {/* Drag handle - mobile optimized with touch prevention */}
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-2 left-2 bg-white/90 hover:bg-white rounded p-2 cursor-grab active:cursor-grabbing shadow-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="drag-handle absolute top-2 left-2 bg-white/90 hover:bg-white rounded p-2 cursor-grab active:cursor-grabbing shadow-sm min-h-[44px] min-w-[44px] flex items-center justify-center border border-gray-300"
+          style={{ touchAction: 'none' }}
+          onTouchStart={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+          title="Drag to reorder"
         >
           <GripVertical className="h-5 w-5 text-gray-600" />
         </div>
@@ -167,7 +171,11 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -354,8 +362,11 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Car Inventory</h2>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h2 className="text-xl font-semibold">Car Inventory</h2>
+          <p className="text-sm text-muted-foreground mt-1">Touch and drag the grip handle (⋮⋮) to reorder cars</p>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2">
           {hasUnsavedChanges && (
             <Button 

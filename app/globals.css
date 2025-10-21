@@ -256,6 +256,27 @@ body {
     overflow-x: hidden;
     width: 100%;
   }
+  
+  /* Mobile drag handle improvements */
+  .drag-handle {
+    touch-action: none !important;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  .drag-handle:active {
+    transform: scale(1.1);
+    transition: transform 0.1s ease;
+  }
+  
+  /* Prevent scroll when dragging */
+  .dragging {
+    overflow: hidden !important;
+  }
 }
 
 /* Production-ready touch feedback */
