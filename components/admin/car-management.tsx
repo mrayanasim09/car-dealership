@@ -90,14 +90,18 @@ function SortableCarItem({
             SOLD
           </Badge>
         )}
-        {/* Drag handle - mobile optimized with touch prevention */}
+        {/* Drag handle - mobile optimized with improved touch handling */}
         <div 
           {...attributes} 
           {...listeners}
           className="drag-handle absolute top-2 left-2 bg-white/90 hover:bg-white rounded p-2 cursor-grab active:cursor-grabbing shadow-sm min-h-[44px] min-w-[44px] flex items-center justify-center border border-gray-300"
           style={{ touchAction: 'none' }}
-          onTouchStart={(e) => e.preventDefault()}
-          onTouchMove={(e) => e.preventDefault()}
+          onTouchStart={(e) => {
+            // Only prevent default if this is the initial touch
+            if (e.touches.length === 1) {
+              e.preventDefault()
+            }
+          }}
           title="Drag to reorder"
         >
           <GripVertical className="h-5 w-5 text-gray-600" />
@@ -173,7 +177,7 @@ export function CarManagement({ cars, setCars }: CarManagementProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5, // Reduced distance for better mobile responsiveness
       },
     }),
     useSensor(KeyboardSensor, {
